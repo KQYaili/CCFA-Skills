@@ -26,6 +26,8 @@ Compose from the supplied scientific propositions and the reader's path through 
 
 An ordinary clear local edit needs the active baseline, actual text, and relevant constraints. Read [humanization-policy.md](../ccf-humanization/references/humanization-policy.md) or [prose-quality-guardrails.md](references/prose-quality-guardrails.md) for an actual expression/logic problem or requested humanization; load the relevant sections rather than both full guides by default. Punctuation thresholds belong to Humanization. Supporting phrase checks never replace semantic reading or require removing correct technical language.
 
+For substantial evidence-led ML manuscript drafting, consult the relevant [research-rigor writing gates](../ccf-common/references/research-rigor-gates.md). A null or negative result may form a useful diagnostic contribution when the controls support it; do not force a "failed method then successful repair" story or infer a positive outcome from a proposed mechanism. Keep numerical, denominator, uncertainty, and protocol identity consistent with the actual results and the reserved figure placements.
+
 ## Mode Navigation
 
 | Requested work | Relevant guidance |
