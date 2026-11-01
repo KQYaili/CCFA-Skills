@@ -35,6 +35,8 @@ For an explicit autonomous-research request, load [autonomous-research.md](refer
 
 For an authorized multi-stage ML experiment, use the relevant [research-rigor gates](../ccf-common/references/research-rigor-gates.md) to distinguish preregistered confirmatory work from exploration, planned from observed runs, and worker completion from cloud resource release. Reuse an established handoff file and archive process; neither a new M0-M5 ladder nor a new cloud storage destination is required by default. Do not infer progress from timestamps or balance resets.
 
+When [researcher-profile.md](../ccf-common/references/researcher-profile.md) is active for the task under Common's opt-in rules, gate costly confirmatory runs to an authorized budget and default to one active confirmatory bet per managed budget unless the user explicitly authorizes parallel runs. A preregistered kill gate closes that confirmatory test; follow-up exploration or a separately authorized new test may proceed with its own evidence. Do not block ongoing manuscript drafting, experimental charts, or independent theory work.
+
 ## Workflow
 
 1. Identify target venue when relevant, current stage, available artifacts, constraints, deadline pressure, and the user's immediate goal. Distinguish a requested plan, a bounded specialist task, and autonomous research. For the latter, establish its per-run execution contract and remaining budget through `references/autonomous-research.md`; missing execution inputs block only the dependent run, not hypothesis development or preparation.
