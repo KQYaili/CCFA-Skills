@@ -80,5 +80,28 @@ class FigureRegistryChecks(unittest.TestCase):
         self.assertTrue(any("relative" in e for e in errors))
 
 
+    def test_bad_kind_or_status_returns_errors_instead_of_crashing(self):
+        self.figures["figures"][0]["kind"] = []
+        self.figures["figures"][0]["status"] = {}
+        errors = check_registry(self.figures)
+        self.assertTrue(any("kind" in error for error in errors))
+        self.assertTrue(any("status" in error for error in errors))
+
+    def test_legacy_latex_labels_with_underscores_are_preserved(self):
+        self.figures["figures"][0]["id"] = "fig:main_results"
+        tex = self.tex.replace("fig:main-results", "fig:main_results")
+        self.assertEqual(check_registry(self.figures, tex_sources=[tex]), [])
+
+    def test_submission_without_tex_does_not_claim_full_verification(self):
+        self.figures["figures"][0].update(status="final", protocol_id="p1", evidence_paths=["results/data.csv"])
+        self.figures["figures"][1].update(status="final", method_frozen=True, evidence_paths=["figures/method.svg"])
+        errors = check_registry(self.figures, submission=True)
+        self.assertTrue(any("requires --tex" in error for error in errors))
+
+    def test_duplicate_latex_figure_labels_fail(self):
+        errors = check_registry(self.figures, tex_sources=[self.tex, r"\begin{figure}\label{fig:main-results}\end{figure}"])
+        self.assertTrue(any("duplicate LaTeX figure label" in error for error in errors))
+
+
 if __name__ == "__main__":
     unittest.main()

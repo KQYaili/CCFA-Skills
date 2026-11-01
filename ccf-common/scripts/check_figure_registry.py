@@ -14,7 +14,7 @@ import sys
 
 KINDS = {"quantitative", "architecture", "workflow", "other"}
 STATES = {"reserved", "exploratory", "verified", "final"}
-FIG_ID = re.compile(r"^fig:[a-z0-9][a-z0-9-]*$")
+FIG_ID = re.compile(r"^fig:[A-Za-z0-9][A-Za-z0-9_.:-]*$")
 LATEX_CMD = re.compile(r"\\(?:label|(?:[Cc]ref|ref|autoref|eqref)\*?)\s*(?:\[[^]]*\])?\s*\{([^}]+)\}")
 DRAFT_MARKER = re.compile(r"DRAFT FIGURE SLOT|FIGURE PENDING", re.IGNORECASE)
 
@@ -57,14 +57,16 @@ def check_registry(registry: dict, *, tex_sources: list[str] | None = None,
             continue
         figure_id = fig.get("id")
         if not isinstance(figure_id, str) or not FIG_ID.fullmatch(figure_id):
-            errors.append(f"{loc}.id must be fig:<lowercase-hyphen-key>")
+            errors.append(f"{loc}.id must be a valid fig: LaTeX label (letters, digits, _, ., :, -)")
         elif figure_id in seen:
             errors.append(f"duplicate figure ID: {figure_id}")
         else:
             seen.add(figure_id)
-        if fig.get("kind") not in KINDS:
+        kind = fig.get("kind")
+        if not isinstance(kind, str) or kind not in KINDS:
             errors.append(f"{loc}.kind must be one of {sorted(KINDS)}")
-        if fig.get("status") not in STATES:
+        status = fig.get("status")
+        if not isinstance(status, str) or status not in STATES:
             errors.append(f"{loc}.status must be one of {sorted(STATES)}")
         for field in ("section", "purpose"):
             if not isinstance(fig.get(field), str) or not fig[field].strip():
@@ -83,15 +85,18 @@ def check_registry(registry: dict, *, tex_sources: list[str] | None = None,
             errors.append(f"{loc}.in_manuscript must be boolean")
         if fig.get("in_manuscript") is True and isinstance(figure_id, str) and FIG_ID.fullmatch(figure_id):
             expected_labels.add(figure_id)
-        if fig.get("status") in ("verified", "final"):
+        if status in ("verified", "final"):
             if not evidence:
                 errors.append(f"{loc} verified/final figures need evidence_paths")
-            if fig.get("kind") == "quantitative" and not (isinstance(fig.get("protocol_id"), str) and fig["protocol_id"].strip()):
+            if kind == "quantitative" and not (isinstance(fig.get("protocol_id"), str) and fig["protocol_id"].strip()):
                 errors.append(f"{loc} verified/final quantitative figure needs protocol_id")
-            if fig.get("kind") in ("architecture", "workflow") and fig.get("method_frozen") is not True:
+            if kind in ("architecture", "workflow") and fig.get("method_frozen") is not True:
                 errors.append(f"{loc} verified/final method diagram needs method_frozen=true")
-        if submission and fig.get("in_manuscript") is True and fig.get("status") != "final":
+        if submission and fig.get("in_manuscript") is True and status != "final":
             errors.append(f"{loc} is referenced by the planned manuscript but not final")
+
+    if submission and tex_sources is None and expected_labels:
+        errors.append("submission requires --tex for every manuscript TeX source to check figure labels and draft markers")
 
     if tex_sources is not None:
         all_labels: set[str] = set()
@@ -106,7 +111,10 @@ def check_registry(registry: dict, *, tex_sources: list[str] | None = None,
                 command = active_tex[match.start():match.start() + 20]
                 keys = [k.strip() for k in key.split(",")]
                 if command.startswith("\\label"):
-                    all_labels.update(k for k in keys if k.startswith("fig:"))
+                    for figure_key in (k for k in keys if k.startswith("fig:")):
+                        if figure_key in all_labels:
+                            errors.append(f"duplicate LaTeX figure label: {figure_key}")
+                        all_labels.add(figure_key)
                 else:
                     all_references.update(k for k in keys if k.startswith("fig:"))
         for key in sorted(all_references - seen):

@@ -14,7 +14,7 @@ Do **not** force a polished architecture or workflow diagram during early design
 
 ## Authoritative Figure Identity
 
-For multi-figure research projects, keep one project-local registry at the established location, or by default `figures/figure-registry.json`. The registry is a small coordination index, **not** an additional copy of measurements, plotting specifications, or `ccfa.yaml`. Maintain stable `fig:*` keys and corresponding LaTeX labels across sections, tables, plots, captions, and appendices. Reuse a registry if one already exists and preserve unrelated entries.
+For iterative manuscripts, keep one registry per manuscript at its established location, or by default `<manuscript-root>/figures/figure-registry.json`. When one repository contains multiple papers, keep their registries separate even if they reuse labels such as `fig:method-overview`; never merge them into a flat project-wide label namespace. The registry is a small coordination index, **not** an additional copy of measurements, plotting specifications, or `ccfa.yaml`. Maintain stable `fig:*` keys and corresponding LaTeX labels across sections, tables, plots, captions, and appendices. Reuse a registry if one already exists and preserve unrelated entries.
 
 Suggested fields per figure:
 
@@ -32,7 +32,7 @@ These fields are an index; `verified` is an assertion requiring independent evid
 ## Quantitative Figure Loop (during experiments)
 
 1. Attach each chart to a specific comparison, observation unit, metric direction, sample identities, dataset/split, aggregation order, and reproducible input path. When a result batch arrives, inspect its run success, configuration, evaluation identity, and whether it is comparable before updating the chart. Failed or incompatible runs remain diagnostic evidence, not bars in a reported comparison.
-2. Keep a stable authoring script/specification and input binding. Freeze the presentation contract — chart type, metric direction, aggregation and uncertainty annotation — when the first verified batch is plotted; afterwards only the data changes, and a later change to the presentation is a protocol change disclosed like one. Update only affected panels from genuine recorded measurements, retain raw observations, and keep seeds, error bars, sample counts, and missing values explicit. Do not silently pool unlike protocols or fill missing metrics.
+2. Keep a stable authoring script/specification and explicit input bindings. Freeze the scientific comparison definitions — observation unit, metric direction, aggregation rule and uncertainty meaning — when evidence becomes publication-bound; changes to those definitions require a disclosed protocol version and recomputation where applicable. Chart grammar, palette, layout and other presentation choices may still improve as real data arrives, provided axes and transformations remain honest and the affected exports are rechecked. Update only affected panels from genuine recorded measurements, retain raw observations, and keep seeds, error bars, sample counts, and missing values explicit. Do not silently pool unlike protocols or fill missing metrics.
 3. Distinguish exploratory from publication-bound outputs. Exploratory figures may be regenerated on every checked batch and are useful for scientific decisions. Promote to `verified` only after the scientific comparison and normalization/aggregation definitions are checked; `final` additionally requires caption, final-size design and PDF/SVG/render QA. Reusing the plotting script is preferred to recreating the figure from scratch.
 4. When a figure changes, hand the changed claims and identifiers to the paper writer; update only dependent text and captions, including unfavorable outcomes. Do not infer a win from a visual trend without the specified comparison.
 
@@ -60,6 +60,8 @@ Use `Fig.~\ref{fig:method-overview}` where relevant so the reference survives re
 
 ## Method Freeze and Final Diagram Gate
 
+For this manuscript workflow, default to **one principal method architecture figure per paper**, with optional (a)/(b)/(c) insets to explain the key mechanism or training/inference paths. A separate flowchart is not required just to complete a template: use prose, equations, pseudocode or an appendix when sufficient. Add another standalone method diagram only when its scientific role is distinct or the user requests it. For a portfolio of three papers, maintain three distinct main diagrams and three manuscript-scoped registries; do not reuse an unverified diagram by relabeling it.
+
 Treat the method as frozen only when the intended computational graph, modules, branches, objectives, supervision, training/inference boundary, and relevant implementation/version are resolved. A git commit alone is not evidence of scientific consistency. Create final architecture/process figures from the approved topology; compare every arrow and label with the actual computation and remove nonexistent modules. If the method changes later, reopen affected diagrams, figure captions, and dependent manuscript passages. Do not force extra retraining solely to finalize artwork.
 
 ## Final Integration Check
@@ -71,4 +73,4 @@ Before submission, inspect the complete manuscript and figures together:
 3. Architecture/process diagrams agree with the frozen method and its code/equations, including training versus inference; editable outputs are genuinely editable.
 4. Figure captions and preceding/following paragraphs accurately explain purpose, evidence, and limitations. Negative or mixed findings are preserved. Check rendered page-size legibility, cross-references, and figure placement.
 
-The structural validator detects schema, labels, and draft markers; it cannot prove scientific correctness. Preserve the independent integrity/review checks already required elsewhere in CCFA.
+Run the structural validator against each manuscript registry and its complete TeX source set separately. `--submission` requires at least one `--tex` input for manuscripts containing figures; omitting a TeX file may still hide errors in that omitted file. The structural validator detects schema, labels, and draft markers; it cannot prove scientific correctness. Preserve the independent integrity/review checks already required elsewhere in CCFA.
