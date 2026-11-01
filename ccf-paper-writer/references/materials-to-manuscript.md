@@ -74,6 +74,7 @@ After writing, automatically read the whole generated draft once, including abst
 When measurements arrive, replace the corresponding slots and conditional passages together across the draft using the actual outcomes, even when the intended claim fails. Remove a pending ID only after its dependent passages agree. Keep the results-pending label until all result-dependent assertions are supported; writing completion does not imply submission readiness. Optional machine support is described in [writing-execution.md](writing-execution.md).
 
 ### Default Missing-Result Handling
+For iterative paper projects, reserve stable `fig:*` identities, figure placement and neutral before/after transitions from the outset, even when quantitative panels are still evolving and the final method diagram is intentionally deferred. A visible LaTeX draft slot is allowed only in an authorized draft, must compile, and must be replaced before submission. Figure slot status is independent from `results_pending_draft`: reserving a figure does **not** permit prospective success claims or conditional analysis when that setting is off. See `../../ccf-common/references/research-figure-lifecycle.md`.
 
 Determine result availability per comparison from the supplied material: absent, partial, or complete. Preserve existing measurements and supported analysis; leave only missing values and their dependent interpretations unwritten. If results will follow, complete the supplied setup, metrics, comparison/ablation definitions, and table structure. If the user explicitly wants the entire experimental section empty, retain its position without populating it. Do not add an experiment campaign merely to fill a template.
 
@@ -96,6 +97,7 @@ Before completing the content draft, check:
 - Every asserted empirical result has applicable evidence. Planned evaluations have not become completed experiments in summaries or contributions.
 - Main text contains the core explanation. The appendix supports it without contradictory definitions or duplicated narratives.
 - Citations have traceable support. Requested LaTeX builds are checked for compilation, references, and overflow, without treating early page count as a failure.
+- Stable `fig:*` references and figure placements match the project registry where one exists; planned figures are visibly marked in working drafts and no draft slots or outcome-free claims enter the submission version. Quantitative panels use verified data, while final method/process panels use frozen topology.
 
 Use a scoped writing/alignment review, carrying phase and missing-evidence status. A missing authorized result does not invalidate completing the initial prose; an unsupported empirical assertion still needs repair. Do not promise acceptance, an automatic review-score gain, or that every revised sentence must be better.
 

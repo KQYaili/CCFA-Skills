@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "project": "REPLACE_WITH_PROJECT_NAME",
+  "figures": [
+    {
+      "id": "fig:main-results",
+      "kind": "quantitative",
+      "status": "reserved",
+      "section": "Experiments",
+      "purpose": "Compare results under a declared evaluation protocol; no outcomes assumed",
+      "evidence_paths": [],
+      "protocol_id": null,
+      "method_frozen": false,
+      "in_manuscript": true
+    },
+    {
+      "id": "fig:method-overview",
+      "kind": "architecture",
+      "status": "reserved",
+      "section": "Method",
+      "purpose": "Show the final verified computational modules and typed connections",
+      "evidence_paths": [],
+      "protocol_id": null,
+      "method_frozen": false,
+      "in_manuscript": true
+    }
+  ]
+}
