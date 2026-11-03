@@ -43,3 +43,23 @@ On a new checked batch, re-evaluate only the affected claims, captions, table ce
 ## Adaptation note
 
 Conceptually informed by [ARIS result-to-claim and research memory](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep), [Claude Scholar research contract](https://github.com/Galaxy-Dawn/claude-scholar), and [Orchestra Research's ARA rigor review](https://github.com/Orchestra-Research/AI-Research-SKILLs). This CCFA gate is independently worded, scoped to existing artifacts, and requires no third-party runtime or stored graph.
+
+## Supplement (Batch-2, 2026-11-03): Source-Type → Claim-Strength Ladder
+
+The promotion record above decides *whether* a result may be promoted. This ladder bounds *how strongly* a source of a given type may be worded, so the check does not depend on reviewer intuition. It governs literature and artifact evidence alike.
+
+**Strength levels** (weakest to strongest): `speculative` → `observed` → `supported` → `strong`. Never promote a claim to a stronger level without naming the evidence that justifies the upgrade; a silent upgrade is a gate failure even when the stronger wording happens to be true.
+
+| Source type | Strongest claim it may support | Conditions |
+| --- | --- | --- |
+| Abstract-only / webpage placeholder | Discovery and to-read routing only; no manuscript, rebuttal, or durable-conclusion claim | Must be replaced by the full text or a verified artifact before any stronger use |
+| Project note / handoff summary | Hypotheses, plans, and motivation wording | Literature-backed claims require a separate evidence locator for the underlying source |
+| Full paper / preprint (inspected passage) | `observed` or `supported` | The relevant method, dataset, metric, and limitation are named; identity alone (title/abstract match) supports nothing beyond `observed` |
+| Dataset / experiment artifact (own runs) | `observed` to `strong` for project claims | Unit of analysis, metric, provenance, split/seed identity, and analysis limits are recorded |
+| Multiple independent anchors, or one anchor plus a checked replication | `strong` | Anchors must be genuinely independent (not the same run re-described) |
+
+**Evidence locator convention.** Where a project already keeps evidence records, identify each with a stable ID of the form `ER-YYYYMMDD-shortslug-NN` and reuse the same ID downstream; create a new ID only for a distinct source, artifact, or analysis result. This is a naming convention for locators inside the existing notes, manifest, or handoff — it does not create a new claim database, consistent with the Lightweight Handoff above.
+
+**Promotion checklist addition.** Before promotion, also confirm: (1) the claim names at least one evidence locator; (2) the source type is strong enough for the intended strength per the ladder; (3) allowed wording and forbidden stronger wording are both recorded; (4) contradictory or missing evidence is preserved, not deleted.
+
+> Provenance: ladder, strength rules, and ID format adapted from Galaxy-Dawn/claude-scholar (MIT License), `skills/research-ideation/references/research-contract.md`, batch-2 integration 2026-11-03. Adapted to this gate's existing-artifacts scope; the upstream Zotero/Obsidian pipeline and its mandatory record files were not imported.

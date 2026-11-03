@@ -37,6 +37,10 @@ Result-to-claim gate: when experiment results are about to become claims (before
 
 Reference metadata verification: when the question is whether bibliography entries are transcribed correctly (authors, year, volume, pages, DOI), apply [ref-metadata-verification.md](references/ref-metadata-verification.md) — field-level comparison against publisher records with Critical/Warning/Info severities and a per-item Verified / Check suggested / Needs fix / Unverifiable label. This is distinct from citation-audit's context-support check, which judges whether a source supports the claim that cites it.
 
+Bibliographic integrity signals: when the question is a cited work's publication status (retraction / correction / concern), phrase-list risk markers, or whether an existence check actually resolved, apply [bibliographic-integrity-signals.md](references/bibliographic-integrity-signals.md) — status is reported with provenance only, never as a legitimacy judgment, and an identifier mismatch is `undetermined`, never `not_found`.
+
+Exploration integrity and scope calibration: when auditing a study with a preregistration / run-log / closure record, apply [exploration-integrity-audit.md](references/exploration-integrity-audit.md): a claim advocating a route the record marks as a dead end is a hard contradiction, a record with zero dead ends is itself a finding, and claim scope is checked against the explored evidence in both directions (over- and under-claiming).
+
 ## Workflow
 
 1. Identify supplied manuscript, figures/tables/results, bibliography, `ccfa.yaml`, and requested audit mode.
