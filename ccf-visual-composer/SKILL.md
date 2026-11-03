@@ -54,6 +54,7 @@ Read only the relevant sections below. A local edit starts from the existing sou
 | `icon-system` | Native primitives, reusable licensed icons, or necessary custom assets: `references/icon-system.md`. |
 | `table-design`, `layout-integration` | Supplied values, panel/float/caption placement: `references/figure-table-layout.md`. |
 | `render-qa` | Inspect the requested formats using the relevant checks in `references/render-qa.md`. |
+| `publication-panel-evidence` | Substantive multi-panel argument or final submission export: [publication-figure-evidence-check.md](references/publication-figure-evidence-check.md) after the existing visual contract/render QA. Skip for simple or exploratory edits. |
 
 Use `references/palette-and-accessibility.md` only when choosing or changing color semantics. Reuse an established palette and icon family when they remain suitable.
 
