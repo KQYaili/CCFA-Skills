@@ -1,8 +1,8 @@
 schema_version: 4
-generated_at: 2026-10-30
+generated_at: 2026-11-03
 authority: SKILL.md wins if this registry conflicts with a skill body.
 naming_policy: canonical runtime names use ccf-<object>-<role/action>; ccf-common is the governance exception.
-runtime_skill_count: 18
+runtime_skill_count: 21
 # Triggers/exclusions define primary ownership. Handoffs also support prerequisite
 # resolution and targeted checks; routing.md governs integration and scope.
 skills:
@@ -78,6 +78,18 @@ skills:
     trigger: "Maintain and audit Codex/CCFA skills, triggers, references, scripts, docs/SVG diagrams, installation dependencies, and release validation. Use for skill维护, GPT model adaptation, and family routing cleanup. Do not perform research writing or review."
     exclude: "Does not perform research writing, review, literature search, experiment design, or rebuttal."
     handoff: "ccf-common"
+  - name: ccf-proposal-writer
+    trigger: "Draft, revise, or audit research proposals, grant applications, and opening reports with evidence-first foundation files, per-section contracts, layered QA, and commitment calibration. Use for 基金申请书, NSFC申请, 开题报告, and 研究方案. Venue manuscripts belong to ccf-paper-writer; concept judgment belongs to ccf-idea-reviewer."
+    exclude: "Does not write venue manuscripts, judge concept worthiness, or invent funding, personnel, or preliminary-result facts."
+    handoff: "ccf-literature-searcher, ccf-idea-reviewer, ccf-paper-writer"
+  - name: ccf-sr-screener
+    trigger: "Screen an existing corpus for a systematic review under a confirmed protocol: dual-blind title/abstract and full-text screening, third-reviewer adjudication, ordered exclusion codes, kappa and PABAK agreement, and PRISMA flow accounting. Use for 系统综述筛选, 文献筛选, systematic review screening, and PRISMA. Building the corpus belongs to ccf-literature-searcher."
+    exclude: "Does not search for or build the corpus, and never screens before the protocol is confirmed."
+    handoff: "ccf-literature-searcher"
+  - name: ccf-paper-to-patent
+    trigger: "Convert a paper, technical report, or project documentation into a Chinese patent application draft with stable source IDs, evidence-mapped claim features, and stage gates. Use for 专利申请, 论文转专利, 权利要求书撰写, and 技术交底书. Output is a drafting aid, not a patentability opinion."
+    exclude: "Does not give patentability, infringement, or filing opinions, and never infers inventorship, ownership, or prior-art conclusions."
+    handoff: "ccf-literature-searcher"
 merged_runtime_entries:
   ccf-workflow-planner: ccf-pipeline-orchestrator
   ccf-paper-compressor: ccf-paper-writer

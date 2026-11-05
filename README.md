@@ -43,7 +43,7 @@ Yann LeCun and James M. Manyika, [*Learning Abstractions*](https://www.amacad.or
 
 许多有潜力的研究最终未能充分展现价值，并不是因为 idea 不够好，而是因为它在漫长的推进中逐渐失去了清晰的轮廓。文献越积越多，实验表格不断扩张，作者还要在研究、写作和审稿视角之间反复切换。一个无所不包的长 prompt 很难同时做好这些事情，因为检索需要忠于来源，实验需要遵循协议，写作需要围绕论证展开，审稿则必须保持独立判断。
 
-我们因此设计了 CCFA-Skills。论文不是等待逐项填充的文档，而是一条需要在反复修改中保持连贯的研究故事线。18 个分工明确的 skills 从 idea、文献和实验出发，帮助论证逐渐成形，并贯穿写作、绘图、评审、rebuttal 与投稿。当任务从一个 skill 交给另一个 skill 时，研究问题、证据和结论之间的联系仍然会被保留下来。
+我们因此设计了 CCFA-Skills。论文不是等待逐项填充的文档，而是一条需要在反复修改中保持连贯的研究故事线。21 个分工明确的 skills 从 idea、文献和实验出发，帮助论证逐渐成形，并贯穿写作、绘图、评审、rebuttal 与投稿。当任务从一个 skill 交给另一个 skill 时，研究问题、证据和结论之间的联系仍然会被保留下来。
 
 <p align="center">
   <img src="assets/ccfa-skills-hero.zh-CN.svg" alt="CCFA-Skills 家族概览" width="100%">
@@ -63,7 +63,7 @@ Yann LeCun and James M. Manyika, [*Learning Abstractions*](https://www.amacad.or
 npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes --copy
 ```
 
-这条命令安装 18 个 skills。需要内置 LaTeX 模板或只安装部分技能时，请按[安装矩阵](docs/INSTALLATION_MATRIX.zh-CN.md)补齐相邻资源；使用 `--copy` 安装后，更新源码还需要重新复制，步骤见[更新指南](docs/getting-started/AUTO_UPDATE.md)。
+这条命令安装 21 个 skills。需要内置 LaTeX 模板或只安装部分技能时，请按[安装矩阵](docs/INSTALLATION_MATRIX.zh-CN.md)补齐相邻资源；使用 `--copy` 安装后，更新源码还需要重新复制，步骤见[更新指南](docs/getting-started/AUTO_UPDATE.md)。
 
 安装后，直接说出你正在面对的研究问题：
 
@@ -103,7 +103,7 @@ npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes -
 
 所有 CCFA 任务都先启用 `ccf-humanization`，再启用 `ccf-common`，然后进入具体技能；检索、评审、绘图、实验与维护也遵循这一顺序。前者统一自然、直接且保留真实证据的表达，后者落实协作、范围、证据和文件规则。同一任务交接时复用已生效规则，只刷新变化或丢失的部分；详细改写与实验检查按实际任务执行，不重复生成前置报告。各技能继续负责自己的产物并整合必要协作。
 
-### 18 个核心 skills
+### 21 个核心 skills
 
 | 研究阶段 | Skill | 它能带来什么 |
 |---|---|---|
@@ -125,6 +125,9 @@ npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes -
 | 投稿检查 | `ccf-submission-checker` | 检查模板、页数、匿名、PDF 与补充材料 |
 | 范文学习 | `ccf-paper-to-exemplar` | 从用户提供的论文中提炼可复用的写作方法 |
 | 家族维护 | `ccf-skill-forger` | 改进 skills，消除冲突，完成发布前检查 |
+| 提案写作 | `ccf-proposal-writer` | 以证据台账与章节契约起草、修订基金申请书与开题报告 |
+| 综述筛选 | `ccf-sr-screener` | 在已确认方案下双盲筛选综述语料并给出 PRISMA 计数 |
+| 论文转专利 | `ccf-paper-to-patent` | 以来源 ID 证据映射把论文转为中文专利草案（仅起草辅助） |
 
 完整职责视图：
 
@@ -297,7 +300,7 @@ python ccf-common/scripts/preferences.py serve --project "path/to/paper"
 ```text
 CCFA-Skills/
 ├── ccf-common/                 # 家族共享规则
-├── ccf-*/SKILL.md              # 18 个 skill 入口
+├── ccf-*/SKILL.md              # 21 个 skill 入口
 ├── ccf-*/references/           # 按需阅读的参考资料
 ├── ccf-*/scripts/              # 可复现操作
 ├── assets/                     # README 图片与绘图示例
@@ -310,7 +313,7 @@ CCFA-Skills/
 
 协作从最终结果倒推前置条件：判断创新性前核对近邻工作，实质性写作前厘清主张、证据和引用，科学绘图前确认数据含义与方法结构。缺失、冲突或过期的依据交给相应技能补齐；已有且仍适用的证据直接复用。实质性改写后检查受影响的论证，解决问题后再交付；思路审核仍不要求实验完成。内部协作返回相关发现，正式审稿保留固定模板和必要的全文覆盖。节省 token 的重点是重复检索、重复报告、无关参考和重复询问，不是省略前置工作。详见[协作路由](ccf-common/references/routing.md)与[交接规则](ccf-common/references/handoff-modes.md)。
 
-文件约束已前置到全部 18 个 skill 入口。中间文件优先沿用用户指定路径、该产物的 `ccfa.yaml` 映射和已有任务目录；新任务使用项目根目录下独立的 `ccfa-workfiles/<任务用途>/<具体产物>/`，不嵌套在通用 `output/` 中。例如 `figures/method-overview/`、`reviews/paper-short-title/`、`literature/retrieval-memory/` 分别存放方法图、论文评审和主题检索的工作文件。若同名目录已被其他用途占用，采用稳定的 `ccfa-workfiles-<项目名>/`，不混用或覆盖。
+文件约束已前置到全部 21 个 skill 入口。中间文件优先沿用用户指定路径、该产物的 `ccfa.yaml` 映射和已有任务目录；新任务使用项目根目录下独立的 `ccfa-workfiles/<任务用途>/<具体产物>/`，不嵌套在通用 `output/` 中。例如 `figures/method-overview/`、`reviews/paper-short-title/`、`literature/retrieval-memory/` 分别存放方法图、论文评审和主题检索的工作文件。若同名目录已被其他用途占用，采用稳定的 `ccfa-workfiles-<项目名>/`，不混用或覆盖。
 
 需要时才创建 `source/`（可复用源文件）、`assets/`（参考与图标）、`cache/`（下载与提取缓存）、`build/`（当前预览与构建日志）。同一产物跨 skill 共用目录，普通迭代更新原文件，不使用含义不明的 `temp`、`misc` 或 `final-final`。完成后清理本任务产生且已确认可丢弃的过程文件，保留原始数据、可编辑源文件、最终产物及必要对比证据；失败生成不覆盖可用结果。已有目录不因新命名规则被搬迁，完整规则见[产物合约](ccf-common/references/artifact-contracts.md)。
 
@@ -475,7 +478,7 @@ python ccf-visual-composer/resources/python/ccfa_analysis_templates.py --demo al
 
 修改一张图、换一个 skill，应该能继续找到同一份源文件和当前结果。现在，各技能沿用清楚的工作目录，普通迭代更新当前文件，交接时带上必要证据的位置。原始材料、可编辑文件和有用的验证记录会留下，可丢弃的过程文件按任务清理。详细规则只在用到时加载，减少把整段历史一遍遍搬进上下文。目录示例见[仓库结构](#仓库结构)。
 
-家族现在包含 18 个 skills，原有评审结构继续保留，个性化设置扩展为十一项。希望下一次你打开项目时，能够更快接上思路，把精力留给真正值得解决的问题。
+家族现在包含 21 个 skills，原有评审结构继续保留，个性化设置扩展为十一项。希望下一次你打开项目时，能够更快接上思路，把精力留给真正值得解决的问题。
 
 [完整更新记录](CHANGELOG.md) · [此前的 ICLR 2027 适配](ccf-paper-writer/references/venue-guides/iclr.md)
 
@@ -504,7 +507,7 @@ node --check ccf-common/assets/configurator/app.js
 node ccf-common/scripts/test_configurator.js
 ```
 
-这些检查验证 18 个技能的静态结构、配置与引用路径，以及现有脚本的回归用例；它们不等同于实际模型质量或 token 消耗的对比实验。实验与效率结果见 [实验结果.md](实验结果.md)。
+这些检查验证 21 个技能的静态结构、配置与引用路径，以及现有脚本的回归用例；它们不等同于实际模型质量或 token 消耗的对比实验。实验与效率结果见 [实验结果.md](实验结果.md)。
 
 历史实验保留其原始版本与条件；结构检查、场景用例和脚本回归分别说明它们检查了什么，不据此推算当前模型的质量提升或 token 节省比例。
 

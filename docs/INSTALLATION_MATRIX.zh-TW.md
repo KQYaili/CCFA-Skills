@@ -9,7 +9,7 @@ python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "
 python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "<skills-root>"
 ```
 
-預設安裝全部 18 個 skills，並補齊相鄰模板與必要資源。只裝子集時重複 `--skill`，例如 `--skill ccf-paper-reviewer --skill ccf-integrity-auditor`。Humanization 與 Common 始終包含。寫作參考、腳本、舊轉換入口與模板依所選能力補齊；不會額外複製未選技能的 `SKILL.md`。根 README 與 release 工具不會混入 skills 根目錄，安裝後請開啟新會話。
+預設安裝全部 21 個 skills，並補齊相鄰模板與必要資源。只裝子集時重複 `--skill`，例如 `--skill ccf-paper-reviewer --skill ccf-integrity-auditor`。Humanization 與 Common 始終包含。寫作參考、腳本、舊轉換入口與模板依所選能力補齊；不會額外複製未選技能的 `SKILL.md`。根 README 與 release 工具不會混入 skills 根目錄，安裝後請開啟新會話。
 
 輕量包保留原文 Markdown、範例卡、全部舊繪圖示例與模板。完整寫作範例 PDF 放在可選的 `ccfa-skills-0.12.1-papers.zip`；需要時核驗並單獨解壓，再明確安裝：
 
@@ -87,7 +87,7 @@ foreach ($ccfaPath in $ccfaPaths) {
 
 ## 補齊相鄰資源
 
-`npx skills add ... --skill '*' --copy` 安裝全部 18 個 skills，但不會複製沒有 `SKILL.md` 的根目錄 `ccf-latex-templates/`。請從與安裝 skills 相同版本的倉庫執行以下命令。這組資源同時補齊部分安裝所需的參考檔案與舊版轉換腳本。僅複製資源不代表安裝或呼叫資源所屬 skill；任務需要它的能力時，仍需另外安裝對應技能。完整倉庫或外掛已保留這些相鄰路徑。
+`npx skills add ... --skill '*' --copy` 安裝全部 21 個 skills，但不會複製沒有 `SKILL.md` 的根目錄 `ccf-latex-templates/`。請從與安裝 skills 相同版本的倉庫執行以下命令。這組資源同時補齊部分安裝所需的參考檔案與舊版轉換腳本。僅複製資源不代表安裝或呼叫資源所屬 skill；任務需要它的能力時，仍需另外安裝對應技能。完整倉庫或外掛已保留這些相鄰路徑。
 
 Bash:
 

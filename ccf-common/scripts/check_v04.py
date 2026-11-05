@@ -40,6 +40,9 @@ EXPECTED_SKILLS = {
     "ccf-skill-forger",
     "ccf-submission-checker",
     "ccf-paper-to-exemplar",
+    "ccf-proposal-writer",
+    "ccf-sr-screener",
+    "ccf-paper-to-patent",
 }
 
 

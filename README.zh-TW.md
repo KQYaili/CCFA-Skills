@@ -43,7 +43,7 @@ Yann LeCun and James M. Manyika, [*Learning Abstractions*](https://www.amacad.or
 
 許多有潛力的研究最終未能充分展現價值，並不是因為 idea 不夠好，而是因為它在漫長的推進中逐漸失去了清晰的輪廓。文獻愈積愈多，實驗表格不斷擴張，作者還要在研究、寫作和審稿視角之間反覆切換。一個無所不包的長 prompt 很難同時做好這些事情，因為檢索需要忠於來源，實驗需要遵循協議，寫作需要圍繞論證展開，審稿則必須保持獨立判斷。
 
-我們因此設計了 CCFA-Skills。論文不是等待逐項填充的文件，而是一條需要在反覆修改中保持連貫的研究故事線。18 個分工明確的 skills 從 idea、文獻和實驗出發，幫助論證逐漸成形，並貫穿寫作、繪圖、評審、rebuttal 與投稿。當任務從一個 skill 交給另一個 skill 時，研究問題、證據和結論之間的聯繫仍然會被保留下來。
+我們因此設計了 CCFA-Skills。論文不是等待逐項填充的文件，而是一條需要在反覆修改中保持連貫的研究故事線。21 個分工明確的 skills 從 idea、文獻和實驗出發，幫助論證逐漸成形，並貫穿寫作、繪圖、評審、rebuttal 與投稿。當任務從一個 skill 交給另一個 skill 時，研究問題、證據和結論之間的聯繫仍然會被保留下來。
 
 <p align="center">
   <img src="assets/ccfa-skills-hero.zh-TW.svg" alt="CCFA-Skills 家族概覽" width="100%">
@@ -63,7 +63,7 @@ Yann LeCun and James M. Manyika, [*Learning Abstractions*](https://www.amacad.or
 npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes --copy
 ```
 
-這條命令安裝 18 個 skills。需要內建 LaTeX 範本或只安裝部分技能時，請按[安裝矩陣](docs/INSTALLATION_MATRIX.zh-TW.md)補齊相鄰資源；使用 `--copy` 安裝後，更新原始碼還需要重新複製，步驟見[更新指南](docs/getting-started/AUTO_UPDATE.md)。
+這條命令安裝 21 個 skills。需要內建 LaTeX 範本或只安裝部分技能時，請按[安裝矩陣](docs/INSTALLATION_MATRIX.zh-TW.md)補齊相鄰資源；使用 `--copy` 安裝後，更新原始碼還需要重新複製，步驟見[更新指南](docs/getting-started/AUTO_UPDATE.md)。
 
 安裝後，直接說出你正在面對的研究問題：
 
@@ -103,7 +103,7 @@ npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes -
 
 所有 CCFA 任務都先啟用 `ccf-humanization`，再啟用 `ccf-common`，然後進入具體技能；檢索、評審、繪圖、實驗與維護也遵循此順序。前者統一自然、直接且保留真實證據的表達，後者落實協作、範圍、證據和檔案規則。同一任務交接時重用已生效規則，只更新變化或遺失的部分；詳細改寫與實驗檢查依實際任務執行，不重複產生前置報告。各技能繼續負責自己的產物並整合必要協作。
 
-### 18 個核心 skills
+### 21 個核心 skills
 
 | 研究階段 | Skill | 它能帶來什麼 |
 |---|---|---|
@@ -125,6 +125,9 @@ npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes -
 | 投稿檢查 | `ccf-submission-checker` | 檢查模板、頁數、匿名、PDF 與補充材料 |
 | 範文學習 | `ccf-paper-to-exemplar` | 從使用者提供的論文中提煉可重用的寫作方法 |
 | 家族維護 | `ccf-skill-forger` | 改進 skills，消除衝突，完成發布前檢查 |
+| 提案寫作 | `ccf-proposal-writer` | 以證據台賬與章節契約起草、修訂基金申請書與開題報告 |
+| 綜述篩選 | `ccf-sr-screener` | 在已確認方案下雙盲篩選綜述語料並給出 PRISMA 計數 |
+| 論文轉專利 | `ccf-paper-to-patent` | 以來源 ID 證據映射把論文轉為中文專利草案（僅起草輔助） |
 
 完整職責視圖：
 
@@ -297,7 +300,7 @@ python ccf-common/scripts/preferences.py serve --project "path/to/paper"
 ```text
 CCFA-Skills/
 ├── ccf-common/                 # 家族共享規則
-├── ccf-*/SKILL.md              # 18 個 skill 入口
+├── ccf-*/SKILL.md              # 21 個 skill 入口
 ├── ccf-*/references/           # 按需閱讀的參考資料
 ├── ccf-*/scripts/              # 可重現操作
 ├── assets/                     # README 圖片與繪圖示例
@@ -310,7 +313,7 @@ CCFA-Skills/
 
 協作從最終結果回推前置條件：判斷創新性前核對近鄰工作，實質性寫作前釐清主張、證據和引用，科學繪圖前確認資料含義與方法結構。缺失、衝突或過期的依據交給相應技能補齊；既有且仍適用的證據直接重用。實質性改寫後檢查受影響的論證，解決問題後再交付；思路審核仍不要求實驗完成。內部協作回傳相關發現，正式審稿保留固定模板和必要的全文涵蓋。節省 token 的重點是重複檢索、重複報告、無關參考和重複詢問，不是省略前置工作。詳見[協作路由](ccf-common/references/routing.md)與[交接規則](ccf-common/references/handoff-modes.md)。
 
-檔案約束已前置到全部 18 個 skill 入口。中間檔案優先沿用使用者指定路徑、該產物的 `ccfa.yaml` 對應和既有任務目錄；新任務使用專案根目錄下獨立的 `ccfa-workfiles/<任務用途>/<具體產物>/`，不嵌套在通用 `output/` 中。例如 `figures/method-overview/`、`reviews/paper-short-title/`、`literature/retrieval-memory/` 分別存放方法圖、論文評審和主題檢索的工作檔案。若同名目錄已被其他用途占用，採用穩定的 `ccfa-workfiles-<專案名>/`，不混用或覆蓋。
+檔案約束已前置到全部 21 個 skill 入口。中間檔案優先沿用使用者指定路徑、該產物的 `ccfa.yaml` 對應和既有任務目錄；新任務使用專案根目錄下獨立的 `ccfa-workfiles/<任務用途>/<具體產物>/`，不嵌套在通用 `output/` 中。例如 `figures/method-overview/`、`reviews/paper-short-title/`、`literature/retrieval-memory/` 分別存放方法圖、論文評審和主題檢索的工作檔案。若同名目錄已被其他用途占用，採用穩定的 `ccfa-workfiles-<專案名>/`，不混用或覆蓋。
 
 需要時才建立 `source/`（可重用來源檔案）、`assets/`（參考與圖示）、`cache/`（下載與提取快取）、`build/`（目前預覽與建置日誌）。同一產物跨 skill 共用目錄，普通迭代更新原檔，不使用含義不明的 `temp`、`misc` 或 `final-final`。完成後清理本任務產生且已確認可丟棄的過程檔案，保留原始資料、可編輯來源、最終產物及必要對比證據；失敗生成不覆蓋可用結果。既有目錄不因新命名規則被搬遷，完整規則見[產物合約](ccf-common/references/artifact-contracts.md)。
 
@@ -477,7 +480,7 @@ python ccf-visual-composer/resources/python/ccfa_analysis_templates.py --demo al
 
 修改一張圖、換一個 skill，應該能繼續找到同一份來源檔案和目前結果。現在，各技能沿用清楚的工作目錄，一般迭代更新目前檔案，交接時附上必要證據的位置。原始材料、可編輯檔案和有用的驗證紀錄會留下，可丟棄的過程檔案依任務清理。詳細規則只在用到時載入，減少把整段歷史一遍遍搬進上下文。目錄示例見[倉庫結構](#倉庫結構)。
 
-家族現在包含 18 個 skills，原有評審結構繼續保留，個人化設定擴充為十一項。希望下次你打開專案時，能夠更快接上思路，把心力留給真正值得解決的問題。
+家族現在包含 21 個 skills，原有評審結構繼續保留，個人化設定擴充為十一項。希望下次你打開專案時，能夠更快接上思路，把心力留給真正值得解決的問題。
 
 [完整更新紀錄](CHANGELOG.md) · [此前的 ICLR 2027 適配](ccf-paper-writer/references/venue-guides/iclr.md)
 
@@ -504,7 +507,7 @@ node --check ccf-common/assets/configurator/app.js
 node ccf-common/scripts/test_configurator.js
 ```
 
-這些檢查驗證 18 個技能的靜態結構、設定與引用路徑，以及現有腳本的迴歸案例；它們不等同於實際模型品質或 token 消耗的對照實驗。實驗與效率結果見 [實驗結果.md](实验结果.md)。
+這些檢查驗證 21 個技能的靜態結構、設定與引用路徑，以及現有腳本的迴歸案例；它們不等同於實際模型品質或 token 消耗的對照實驗。實驗與效率結果見 [實驗結果.md](实验结果.md)。
 
 歷史實驗保留原始版本與條件；結構檢查、情境案例與腳本回歸分別說明檢查了什麼，不據此推算目前模型的品質提升或 token 節省比例。
 

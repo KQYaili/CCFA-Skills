@@ -1,0 +1,4 @@
+interface:
+  display_name: "CCF Proposal Writer"
+  short_description: "Draft, revise, and QA grant proposals and opening reports with evidence-first foundation files, section contracts, and commitment calibration."
+  default_prompt: "Apply $ccf-humanization, then $ccf-common; reuse their applicable active rules. Use $ccf-proposal-writer to draft, revise, or audit this proposal: build the evidence base before prose, keep every section inside its contract, and lower commitments that outrun the evidence instead of polishing over the gap."

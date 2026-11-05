@@ -17,7 +17,7 @@ python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "
 python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "<skills-root>"
 ```
 
-这条路线保留 18 个技能、相邻模板、真实原文 Markdown 与绘图素材，完整范例 PDF 按需显式安装。更新会保护个人改动，不自动删文件或改偏好；见[更新说明](AUTO_UPDATE.md)。
+这条路线保留 21 个技能、相邻模板、真实原文 Markdown 与绘图素材，完整范例 PDF 按需显式安装。更新会保护个人改动，不自动删文件或改偏好；见[更新说明](AUTO_UPDATE.md)。
 
 ## Git 与 npx 完整源码方案
 
@@ -29,7 +29,7 @@ python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "
 npx skills add mikubaka88/CCFA-Skills --list
 ```
 
-将全部 18 个 skills 安装到 Codex：
+将全部 21 个 skills 安装到 Codex：
 
 ```powershell
 npx skills add mikubaka88/CCFA-Skills --global --agent codex --skill '*' --yes --copy

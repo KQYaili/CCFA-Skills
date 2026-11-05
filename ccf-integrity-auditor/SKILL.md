@@ -39,6 +39,8 @@ Reference metadata verification: when the question is whether bibliography entri
 
 Bibliographic integrity signals: when the question is a cited work's publication status (retraction / correction / concern), phrase-list risk markers, or whether an existence check actually resolved, apply [bibliographic-integrity-signals.md](references/bibliographic-integrity-signals.md) — status is reported with provenance only, never as a legitimacy judgment, and an identifier mismatch is `undetermined`, never `not_found`.
 
+Citation crosscheck (deep mode): when a bibliography changes materially, apply [citation-crosscheck.md](references/citation-crosscheck.md) — a second extractor reconstructs each entry blind from the web given only title and first author, and the owner assigns MATCH / MINOR / MISMATCH from the field-level delta. It is verdict-bearing and never looped; context-fit stays with citation-audit.
+
 Exploration integrity and scope calibration: when auditing a study with a preregistration / run-log / closure record, apply [exploration-integrity-audit.md](references/exploration-integrity-audit.md): a claim advocating a route the record marks as a dead end is a hard contradiction, a record with zero dead ends is itself a finding, and claim scope is checked against the explored evidence in both directions (over- and under-claiming).
 
 ## Workflow

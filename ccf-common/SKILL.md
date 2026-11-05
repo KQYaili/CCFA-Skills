@@ -44,6 +44,7 @@ Explicit autonomous research or repeated experiments route to the orchestrator's
 | Promoting consequential experiment observations into manuscript claims | [claim-promotion-gate.md](references/claim-promotion-gate.md); preserve theoretical proof versus empirical support and use existing evidence records |
 | Research figure timing, incremental experimental plots, manuscript figure slots, and deferred method diagrams | [research-figure-lifecycle.md](references/research-figure-lifecycle.md); apply to iterative multi-figure research, not simple one-off rendering |
 | Autonomous loops, stop/accept gates, automated revision loops | [loop-governance.md](references/loop-governance.md); a loop can drive but never acquit — Type-A execution gates may be self-judged, Type-B value gates require an independent cross-model verdict |
+| Optional typed evidence ledger for a manuscript that explicitly adopts it | [evidence-ledger.md](references/evidence-ledger.md); opt-in structured backing checked by `scripts/scientific_evidence_check.py` — not a mandatory database; the claim-promotion gate above works on existing artifacts |
 | Research project-state schema | [ccfa-yaml-contract.md](references/ccfa-yaml-contract.md) |
 | Shared source, trigger, or venue lookup | `references/source-registry.yaml`, `references/skill-trigger-registry.yaml`, or [ccf-a-venue-map.md](references/ccf-a-venue-map.md); inspect relevant records only |
 | Skill-family maintenance | [skill-maintenance.md](references/skill-maintenance.md); load for actual maintenance, not routine preflight |

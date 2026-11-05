@@ -195,7 +195,7 @@ def build_hero(lang: str) -> None:
             "eyebrow": "A skill family for research papers",
             "title_lines": ["From research idea", "to submission"],
             "subtitle_lines": [
-                "18 focused skills for literature, experiments, writing,",
+                "21 focused skills for literature, experiments, writing,",
                 "review, figures, and submission.",
             ],
             "chips": ["Focused collaboration", "Evidence-grounded writing", "Editable scientific figures"],
@@ -207,7 +207,7 @@ def build_hero(lang: str) -> None:
         "zh-CN": {
             "eyebrow": "为科研论文而生的 skill 家族",
             "title_lines": ["从研究想法到论文投稿"],
-            "subtitle_lines": ["18 个彼此协作的 skills，覆盖文献、实验、写作、审稿、绘图与投稿检查。"],
+            "subtitle_lines": ["21 个彼此协作的 skills，覆盖文献、实验、写作、审稿、绘图与投稿检查。"],
             "chips": ["清晰分工", "证据支撑写作", "可编辑科研图"],
             "nodes": ["选题", "证据", "论文", "绘图", "投稿"],
             "hub_label": "家族",
@@ -217,7 +217,7 @@ def build_hero(lang: str) -> None:
         "zh-TW": {
             "eyebrow": "為研究論文而生的 skill 家族",
             "title_lines": ["從研究想法到論文投稿"],
-            "subtitle_lines": ["18 個彼此協作的 skills，涵蓋文獻、實驗、寫作、審稿、繪圖與投稿檢查。"],
+            "subtitle_lines": ["21 個彼此協作的 skills，涵蓋文獻、實驗、寫作、審稿、繪圖與投稿檢查。"],
             "chips": ["清晰分工", "證據支撐寫作", "可編輯科研圖"],
             "nodes": ["選題", "證據", "論文", "繪圖", "投稿"],
             "hub_label": "家族",
@@ -408,9 +408,9 @@ def build_workflow(lang: str) -> None:
 def build_catalog(lang: str) -> None:
     title = {"en": "Skill catalog by responsibility", "zh-CN": "按职责划分的技能目录", "zh-TW": "按職責劃分的技能目錄"}[lang]
     subtitle = {
-        "en": "18 skills with distinct responsibilities and purposeful collaboration",
-        "zh-CN": "18 个 skills 各有专长，并在需要时彼此协作",
-        "zh-TW": "18 個 skills 各有專長，並在需要時彼此協作",
+        "en": "21 skills with distinct responsibilities and purposeful collaboration",
+        "zh-CN": "21 个 skills 各有专长，并在需要时彼此协作",
+        "zh-TW": "21 個 skills 各有專長，並在需要時彼此協作",
     }[lang]
     body = [text(60, 58, title, 30, 800), text(60, 88, subtitle, 15, 500, PALETTE["muted"])]
     layout = [("governance", 60, 125, PALETTE["blue"]), ("ideation", 430, 125, PALETTE["purple"]), ("evidence", 800, 125, PALETTE["green"]), ("writing", 60, 380, PALETTE["red"]), ("delivery", 430, 380, PALETTE["orange"]), ("maintenance", 800, 380, "#EEF2FF")]

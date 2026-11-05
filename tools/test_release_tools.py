@@ -98,9 +98,9 @@ class ReleaseTests(unittest.TestCase):
         for report in self.reports:
             self.assertEqual(support.digest(self.output/report["file"]), report["sha256"])
 
-    def test_clean_full_install_has_18_entries_resources_but_no_root_readme_or_pdf(self):
+    def test_clean_full_install_has_21_entries_resources_but_no_root_readme_or_pdf(self):
         result = installer.install(self.source, self.target)
-        self.assertEqual(len(result["skills"]), 18)
+        self.assertEqual(len(result["skills"]), 21)
         self.assertEqual(sorted(p.name for p in self.target.glob("ccf-*") if (p/"SKILL.md").exists()), SKILLS)
         for name in ("ccf-latex-templates/NeurIPS/template.tex", "ccf-paper-to-exemplar/scripts/convert.py", "assets/visual-showcase/reference.svg"):
             self.assertTrue((self.target/name).is_file(), name)

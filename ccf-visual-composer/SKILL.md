@@ -56,6 +56,7 @@ Read only the relevant sections below. A local edit starts from the existing sou
 | `render-qa` | Inspect the requested formats using the relevant checks in `references/render-qa.md`. |
 | `publication-panel-evidence` | Substantive multi-panel argument or final submission export: [publication-figure-evidence-check.md](references/publication-figure-evidence-check.md) after the existing visual contract/render QA. Skip for simple or exploratory edits. |
 | `post-render-qa` | Final export of a publication figure: the mechanical hard gate in [figure-post-render-qa.md](references/figure-post-render-qa.md) — `scripts/audit_figure_collisions.py` on the rendered PDF (FAIL blocks delivery), `scripts/audit_panel_alignment.py` at 1.5 pt with recorded exemptions, `scripts/audit_pdf_text.py` for the effective text-size floor, plus the raster/source-data export contract. |
+| `drawio-reconstruction` | Rebuilding a supplied raster/PDF figure as an editable .drawio under the Fidelity Contract: [drawio-reconstruction.md](references/drawio-reconstruction.md) — manifest first, scripts gate technical validity only, completion requires full-size visual comparison against the reference. |
 
 Use `references/palette-and-accessibility.md` only when choosing or changing color semantics. Reuse an established palette and icon family when they remain suitable.
 

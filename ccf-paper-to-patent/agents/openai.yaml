@@ -1,0 +1,4 @@
+interface:
+  display_name: "CCF Paper To Patent"
+  short_description: "Convert papers into Chinese patent drafts with source-ID evidence mapping, stage gates, and deterministic validation."
+  default_prompt: "Apply $ccf-humanization, then $ccf-common; reuse their applicable active rules. Use $ccf-paper-to-patent to convert this paper into a patent draft: map the source with stable IDs first, bar unsupported features from claims, and treat the output as a drafting aid, not a patentability opinion."

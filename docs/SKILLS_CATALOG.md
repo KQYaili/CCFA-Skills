@@ -26,6 +26,9 @@ This catalog is the public trigger-conflict index for the current CCFA family. I
 | `ccf-rebuttal-writer` | Post-review | Write rebuttals, response letters, revision ledgers, resubmission plans. | 写 rebuttal、response letter、revision ledger、保守重投计划。 | rebuttal, ledger, response letter, resubmission | Ordinary manuscript writing. |
 | `ccf-common` | Shared preflight | Activate after Humanization before every specialist; apply shared scope, routing, prerequisites, evidence, and artifact rules. | 所有技能执行前启用共享规则；兼顾家族规则维护。 | family-preflight, governance | Taking over research deliverables or running maintenance merely because it was activated. |
 | `ccf-skill-forger` | Maintenance | Maintain skills, routing, docs, SVG diagrams, validation, and releases. | 维护 skills、路由、README、SVG、校验和 release。 | skill maintenance, docs/SVG maintenance | Research writing, review, or experiments. |
+| `ccf-proposal-writer` | Proposal | Draft, revise, and QA grant proposals and opening reports evidence-first, with section contracts and commitment calibration. | 基金申请书、NSFC申请、开题报告、研究方案；先证据后动笔。 | compose, revise, hybrid, qa | Venue manuscripts, concept judgment, or invented funding/personnel facts. |
+| `ccf-sr-screener` | Evidence | Screen a review corpus dual-blind under a confirmed protocol, with adjudication, kappa + PABAK, and PRISMA counts. | 系统综述筛选、文献筛选、PRISMA、双盲筛选与一致性统计。 | protocol, pilot, ta-screen, ft-screen, adjudicate, audit, report | Building the corpus, or screening before the protocol is confirmed. |
+| `ccf-paper-to-patent` | Conversion | Convert papers into Chinese patent drafts with source-ID evidence mapping and stage gates. | 论文转专利、权利要求书、技术交底书；仅起草辅助，非专利性意见。 | full-draft, claims-only, disclosure, audit | Patentability, infringement, or filing opinions. |
 
 ## Merged Entries
 

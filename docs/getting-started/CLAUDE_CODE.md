@@ -17,7 +17,7 @@ python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "
 
 此方案保留仓库中的完整 PDF，适合需要完整离线源码的用户。
 
-需要 Node.js 22.20.0 或更高版本（本地核验 `skills` CLI 1.5.22 的要求；其他版本以安装器的 `engines` 声明为准）。安装全部 18 个 skills：
+需要 Node.js 22.20.0 或更高版本（本地核验 `skills` CLI 1.5.22 的要求；其他版本以安装器的 `engines` 声明为准）。安装全部 21 个 skills：
 
 ```bash
 npx skills add mikubaka88/CCFA-Skills --global --agent claude-code --skill '*' --yes --copy

@@ -9,7 +9,7 @@ python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "
 python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "<skills-root>"
 ```
 
-The default installs all 18 skills, their sibling templates and required resources. For a subset, repeat `--skill`, for example `--skill ccf-paper-reviewer --skill ccf-integrity-auditor`. Humanization and Common are always included. Required writer references/scripts, legacy converter resources and template resources are copied where applicable, without adding an unselected owner's `SKILL.md`. Root README and release tools are not copied into the skills root. Existing client discovery rules still apply; start a new session after installation.
+The default installs all 21 skills, their sibling templates and required resources. For a subset, repeat `--skill`, for example `--skill ccf-paper-reviewer --skill ccf-integrity-auditor`. Humanization and Common are always included. Required writer references/scripts, legacy converter resources and template resources are copied where applicable, without adding an unselected owner's `SKILL.md`. Root README and release tools are not copied into the skills root. Existing client discovery rules still apply; start a new session after installation.
 
 The lean archive keeps original Markdown passages, exemplar cards, all figure examples and templates. Complete writing-example PDFs are in the optional `ccfa-skills-0.12.1-papers.zip`. To add those explicitly, check and extract that archive separately, then run:
 
@@ -87,7 +87,7 @@ foreach ($ccfaPath in $ccfaPaths) {
 
 ## Sibling resources
 
-`npx skills add ... --skill '*' --copy` installs all 18 skills, but does not copy the root-level `ccf-latex-templates/` directory, which has no `SKILL.md`. Run the following from the same repository revision used for the skills. This resource bundle also covers partial-install references and legacy conversion scripts. Copying these resources does not install or authorize their owning skills; add a specialist separately when the task needs its capability. Full repository/plugin layouts already retain the sibling paths.
+`npx skills add ... --skill '*' --copy` installs all 21 skills, but does not copy the root-level `ccf-latex-templates/` directory, which has no `SKILL.md`. Run the following from the same repository revision used for the skills. This resource bundle also covers partial-install references and legacy conversion scripts. Copying these resources does not install or authorize their owning skills; add a specialist separately when the task needs its capability. Full repository/plugin layouts already retain the sibling paths.
 
 Bash:
 

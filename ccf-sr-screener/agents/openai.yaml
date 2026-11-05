@@ -1,0 +1,4 @@
+interface:
+  display_name: "CCF SR Screener"
+  short_description: "Dual-blind systematic-review screening under a confirmed protocol, with adjudication, agreement statistics, and PRISMA accounting."
+  default_prompt: "Apply $ccf-humanization, then $ccf-common; reuse their applicable active rules. Use $ccf-sr-screener to screen this corpus: confirm the protocol before judging any record, keep the two screeners blind, adjudicate every disagreement, and never let a failed screening call default a record to excluded."

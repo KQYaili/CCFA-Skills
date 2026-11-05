@@ -20,7 +20,7 @@ Resolve common collisions by the requested deliverable:
 - Explicit autonomous research, autoresearch, or repeated hypothesis/experiment iteration -> `ccf-pipeline-orchestrator` coordinates the [research loop](../../ccf-pipeline-orchestrator/references/autonomous-research.md). Optimizer develops mechanisms, designer owns the protocol and result interpretation, and research engineer implements and diagnoses authorized runs through host tools. Research strategy may change within the fixed task objective; persistent skill changes remain the forger's responsibility. Concept-only judgment still routes to idea reviewer without experimental requirements.
 - `ccf-humanization` is the mandatory first preflight for every CCFA skill; its baseline also applies to planning, retrieval, review, audit, and visuals. Prose rewriting and detailed experiment checks run only when applicable and authorized. It does not take over the specialist's artifact or soften evidence-backed criticism.
 
-The current runtime surface contains 18 installable `ccf-*` skills plus the LaTeX/template reference tree. Removed helper names must not be installed as standalone skills.
+The current runtime surface contains 21 installable `ccf-*` skills plus the LaTeX/template reference tree. Removed helper names must not be installed as standalone skills.
 
 ## Priority Overlay
 
@@ -50,6 +50,9 @@ Humanization removes empty self-defense while preserving material facts, rigorou
 | Write rebuttals, revision ledgers, response letters, and resubmission plans. | `ccf-rebuttal-writer` | rebuttal, revision ledger, response letter, resubmission | Does not trigger for ordinary writing. |
 | Shared preflight for every CCFA task after Humanization; routing, evidence, handoffs, artifact controls, and their maintenance. | `ccf-common` | family-preflight, governance | Does not replace research specialists or run maintenance checks merely because it was activated. |
 | Maintain skills, docs, SVG diagrams, routing, validation, and releases. | `ccf-skill-forger` | skill maintenance, docs/SVG maintenance, release validation | Does not do research writing or review. |
+| Draft, revise, or audit research proposals, grant applications, and opening reports against an evidence base and per-section contracts. | `ccf-proposal-writer` | compose, revise, hybrid, qa | Does not write venue manuscripts, judge concept worthiness, or invent funding/personnel/preliminary-result facts. |
+| Screen an existing review corpus under a confirmed protocol with dual-blind verdicts, adjudication, and PRISMA accounting. | `ccf-sr-screener` | protocol, pilot, ta-screen, ft-screen, adjudicate, audit, report | Does not build the corpus or screen before protocol confirmation. |
+| Convert papers or reports into Chinese patent drafts with source-ID evidence mapping and stage gates. | `ccf-paper-to-patent` | full-draft, claims-only, disclosure, audit | Drafting aid only; does not give patentability, infringement, or filing opinions. |
 
 ## Prerequisites And Cooperation
 

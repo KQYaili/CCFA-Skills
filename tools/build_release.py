@@ -40,8 +40,8 @@ def build(root, output, tracked_only=True):
         if path.is_file():
             files.append(name)
     skills = sorted(name.split("/")[0] for name in files if name.startswith("ccf-") and name.count("/") == 1 and name.endswith("/SKILL.md"))
-    if len(skills) != 18:
-        raise ValueError("A family release must include all 18 current skill entries")
+    if len(skills) != 21:
+        raise ValueError("A family release must include all 21 current skill entries")
     output.mkdir(parents=True, exist_ok=True)
     reports = []
     for profile in ("lean", "papers"):
