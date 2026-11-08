@@ -10,6 +10,10 @@ Plan the reading order so the main result is visible before interpretation and c
 
 The default **one principal method architecture figure per manuscript** still applies: do not add a second architecture or motivation diagram just to complete a figure category. Publication-ready architecture topology remains gated on method freeze; generated images do not establish a valid scientific graph.
 
+## Cross-Figure Presentation Consistency
+
+For a paper-wide visual pass, use M07/M10/M13 and X01/X02 of the [shared manuscript audit](../../ccf-common/references/manuscript-audit-standard.md). Compare open/closed axis spines, grid presence and weight, typography, color/line/marker identities, legend semantics, and panel-letter placement across **comparable** figures; deliberate exceptions need a reason. Verify color-vision-deficiency and grayscale legibility. Every used error band, n, statistical marker, highlighted value and unit is explained in the relevant caption/figure; percentage and percentage-point scales must not silently switch. Reconcile the actual rendered panel and cited source data rather than declaring a consistent theme from plotting code alone.
+
 ## Final-Size Evidence And Geometry Check
 
 Inspect the real generated output at the intended journal template's **physical width**, using the requested single/double-column or custom width rather than an arbitrary pixel preview.

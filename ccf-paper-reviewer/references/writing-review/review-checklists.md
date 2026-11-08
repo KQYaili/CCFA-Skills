@@ -12,6 +12,9 @@ Use this file to prevent omissions during manuscript writing review, paragraph-b
 
 ## Full Writing Review Checklist
 
+Select applicable writing and presentation checks from [manuscript quality audit](../../../ccf-common/references/manuscript-audit-standard.md), especially M01/M02/M07/M10/M13–M15 and X01/X02/X06. Mention an uncovered P0 scientific dependency when material, but do not silently expand writing-only review to a scientific acceptance verdict. Use this standard within the existing fixed writing profile, not as an extra report.
+
+
 - The paper's intended story is summarized in one sentence.
 - Abstract, introduction, contribution list, headings, figures/tables, and conclusion are read before local paragraph comments.
 - Contributions are stated as the paper claims them and checked for specificity, overlap, and evidence support.

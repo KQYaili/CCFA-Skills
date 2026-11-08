@@ -33,6 +33,8 @@ For scores, panels, AC/meta-review, change conditions, or standard reports, load
 
 Identify the draft phase. Internal alignment checks of content-first or results-pending drafts assess explanation and consistency, with absent empirical adequacy `not assessed`; no invented acceptance score, imposed page limit or experiment campaign. Unsupported empirical assertions remain findings. A requested full submission review still reports real evidence incompleteness under its normal rubric. [materials-to-manuscript.md](../ccf-paper-writer/references/materials-to-manuscript.md) defines the draft contract.
 
+For a substantial scientific/full manuscript audit, use the shared [manuscript quality audit](../ccf-common/references/manuscript-audit-standard.md) to prioritize P0 claim-to-evidence and experiment logic, then P1 interpretability and P2 compliance as applicable. The 15 author checks and supplementary safeguards are **candidate checks, not presumed faults**. Writing-only review reports textual scope, not a fabricated scientific validation; keep the existing review rubric, severity and fixed report format.
+
 ## Evidence And Findings
 
 Read the supplied scientific work and relevant dependencies at the requested coverage; filenames and excerpts do not establish whole-paper inspection. Reconstruct contributions, claims and support before judgment. Anchor concerns to actual locations. For every major/critical concern, inspect the strongest supplied passage or appendix that could answer it; record the countercheck and withdraw or narrow refuted criticism. Separate confirmed flaw, unsupported claim, clarification and missing input. Do not force praise, disagreement, or a concern quota.

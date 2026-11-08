@@ -17,6 +17,9 @@ If compilation is feasible and the user wants format validation, run the local b
 
 ## Audit Checklist
 
+For a whole-manuscript or explicit LaTeX audit, also consult M01/M02/M08–M11/M13–M15 and X01/X02 of the [shared manuscript audit](../../../ccf-common/references/manuscript-audit-standard.md). In particular, inspect first-use definitions, unit spacing, source-versus-figure subscripts, numbered multiline equations (braces only where mathematically appropriate), panel letters, caption separators and hyphen/dash semantics. These are inspected candidates, not automatic fail rules, and official venue style takes precedence. If only a PDF is available, do not pretend TeX macro or symbol definitions were exhaustively inspected.
+
+
 Check:
 
 1. Venue template: correct class/style, anonymization/camera-ready mode, font size, margins, page limit, appendix handling, and supplemental-material rules.

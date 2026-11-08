@@ -28,6 +28,8 @@ An ordinary clear local edit needs the active baseline, actual text, and relevan
 
 For substantial evidence-led ML manuscript drafting, consult the relevant [research-rigor writing gates](../ccf-common/references/research-rigor-gates.md). A null or negative result may form a useful diagnostic contribution when the controls support it; do not force a "failed method then successful repair" story or infer a positive outcome from a proposed mechanism. Keep numerical, denominator, uncertainty, and protocol identity consistent with the actual results and the reserved figure placements.
 
+For substantive full-paper alignment or final-readiness drafting, consult the shared [manuscript quality audit](../ccf-common/references/manuscript-audit-standard.md) for first-use notation, application scope, experiment-to-claim narration, numeric traceability and P0/P1/P2 priorities. It is a selective check, not a new preflight or blanket rewrite requirement for a local paragraph edit. Venue-specific rules remain with the submission checker.
+
 ## Mode Navigation
 
 | Requested work | Relevant guidance |

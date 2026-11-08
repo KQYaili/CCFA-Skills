@@ -57,6 +57,8 @@ Required fixes:
 Next CCFA owner:
 ```
 
+For an explicitly requested **whole-manuscript final audit**, route scientific/writing findings through `ccf-paper-reviewer` using [manuscript-audit-standard.md](../ccf-common/references/manuscript-audit-standard.md) while this skill owns current venue/year/track/stage policy and package verification. This checklist does not make the 15 author preferences mandatory venue rules, imply an automatic submission decision, or authorize an experiment/release.
+
 ## Check Scope
 
 Follow `../ccf-common/references/handoff-modes.md` and `../ccf-common/references/task-modes.md`. Run checks relevant to the requested mode and actual artifacts. Distinguish pass, fail, not applicable, and not verified; missing tools do not imply passing or failure. Record the official rule URL and the date checked. Reuse the project build configuration and place generated logs/previews in the established or shared task build directory. Update the canonical readiness report in place and distinguish old PDFs from successful current builds. Recheck only affected build surfaces after a fix. Underfilling a page budget alone is not a venue violation. Do not upload or submit files merely because a readiness check was requested.

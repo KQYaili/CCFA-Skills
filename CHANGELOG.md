@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-08 - Manuscript audit reference integration (documentation only)
+
+- Add one selectively loaded, venue-aware manuscript quality reference: 15 author-supplied checks, four scientific evidence checks and six supplemental safeguards for number provenance, caption self-sufficiency, closest-work freshness, sibling overlap, submission declarations and versioned review receipts.
+- Link the reference from Common, the paper writer and reviewer, LaTeX audit, publication-figure QA and submission checker without changing specialist ownership, quick-mode behavior, reviewer scoring, scientific evidence, personal preferences or release authorization.
+- Preserve the existing plugin version and venue-specific official-policy precedence. Do not publish private source notes or turn project-specific experiences into universal requirements.
+
 ## v0.12.0 - 2026-10-31
 
 Plugin version is `0.12.0`.
