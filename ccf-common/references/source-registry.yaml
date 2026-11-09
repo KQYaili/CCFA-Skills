@@ -259,15 +259,6 @@ sources:
     verified_at: 2026-10-19
     stale_after_days: 30
     notes: Decision-relevant concise reviews and contribution-aware evidence; the FAQ deadline example conflicts with the Author Guidelines, so verify dates there.
-  - id: iclr-2027-ai-authors
-    title: ICLR 2027 AI Policy for Authors
-    url: https://iclr.cc/Conferences/2027/AIPolicyForAuthors
-    source_type: venue_policy
-    used_by: [ccf-paper-writer, ccf-submission-checker]
-    recorded_at: 2026-09-16
-    verified_at: 2026-10-19
-    stale_after_days: 30
-    notes: Use the full task list to distinguish required and recommended AI-use disclosures; preserve actual usage and verification facts.
   - id: iclr-2027-ai-reviewers
     title: ICLR 2027 AI Policy for Reviewers and Meta-Reviewers
     url: https://iclr.cc/Conferences/2027/AIPolicyForReviewers

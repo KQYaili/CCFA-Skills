@@ -22,15 +22,14 @@
 
 ## ICLR 2027 Adaptation
 
-Verified source records: `iclr-2027-author-guidelines`, `iclr-2027-reviewer-guidelines`, `iclr-2027-ai-authors`, `iclr-2027-ai-reviewers`, and `iclr-2027-style-files` in the shared source registry. Read only the policy relevant to the task.
+Verified source records: `iclr-2027-author-guidelines`, `iclr-2027-reviewer-guidelines`, and `iclr-2027-style-files` in the shared source registry. Read only the policy relevant to the task.
 
 - Abstract deadline: September 18, 2026; full paper: September 25, 2026, both 23:59 AoE. Use the current Author Guidelines for dates; the reviewer FAQ still contains a conflicting September 16 example.
 - Keep required prerequisites and all material review findings. Prioritize issues that can change the recommendation; avoid unrelated experiments and citation lists. Preserve the existing CCFA review structure and contribution-aware rubric.
-- See the AI-use requirements below when drafting or checking a full submission. An author's internal pre-review remains distinct from an official assigned review.
 
 ### Existing ICLR 2026 Projects
 
-Keep `ccf-latex-templates/ICLR/iclr2026_conference.sty` for projects explicitly targeting 2026, with the default review mode and `\iclrfinalcopy` for camera-ready. Use the complete matching official bundle when dependencies are missing or rendered headers differ. Consult the existing `iclr-2026-author-guide` source record for historical policy. Do not impose the 2027 AI-disclosure rules on a 2026 project.
+Keep `ccf-latex-templates/ICLR/iclr2026_conference.sty` for projects explicitly targeting 2026, with the default review mode and `\iclrfinalcopy` for camera-ready. Use the complete matching official bundle when dependencies are missing or rendered headers differ. Consult the existing `iclr-2026-author-guide` source record for historical policy.
 
 ## Double-Blind Review
 
@@ -90,12 +89,6 @@ Use `\ificlrfinal` for content that differs between versions:
 - Discussion and camera-ready versions: 10 pages for the main text, excluding references and appendix.
 - Appendices and supplementary material are allowed but must follow current official instructions.
 - Always re-check the official Author Guide before real submission.
-
-## AI Use Statement (2027)
-
-Include the mandatory AI-use section and consistent submission-form answers, including when no disclosable use occurred. The section is outside the main-text budget; the official template limits it to one page. Record actual assistance and human checks, not blanket assurances. Required disclosure covers, among other tasks, hypotheses, methods/experiments, method implementation, proofs, data processing, result interpretation, and translation; figure creation and readability editing are recommended disclosures. Check the full official task list for borderline cases. Do not assume translation is exempt polishing.
-
-Use the existing manuscript and task history; create no separate ledger by default. Ask only for missing usage facts needed to finalize the statement; leave those facts explicitly unresolved meanwhile. Humanization and compression must retain the disclosure and its substance. Never invent non-use or completed human verification.
 
 ## Title and Author Formatting
 
@@ -401,7 +394,6 @@ For camera-ready:
 - [ ] Author identities hidden in the review PDF, metadata, and supplementary material
 - [ ] PDF compiles without errors
 - [ ] Abstract is clear and compelling
-- [ ] Required AI-use section and submission-form answers complete and consistent
 - [ ] References in correct format
 - [ ] Figures/tables properly formatted
 - [ ] No confidential information that shouldn't be public

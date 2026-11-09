@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-08 - Author-owned AI disclosure boundary
+
+- Remove the standalone author AI-disclosure policy reference and its automatic submission checks, ICLR author-facing disclosure instructions, source registry entry, and shared manuscript audit mention.
+- Leave all author AI-use disclosure text and decisions to the author; no drafting, edits, prompting, or compliance verdict by CCFA skills. Preserve unrelated official reviewer-assistance guidance.
+
+
 ## 2026-11-08 - Manuscript audit reference integration (documentation only)
 
 - Add one selectively loaded, venue-aware manuscript quality reference: 15 author-supplied checks, four scientific evidence checks and six supplemental safeguards for number provenance, caption self-sufficiency, closest-work freshness, sibling overlap, submission declarations and versioned review receipts.
