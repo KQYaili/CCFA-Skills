@@ -409,6 +409,7 @@ def apply_patch(packet, patch, dry_run=False):
                   "changed": result_data != data}
         if not result["changed"]:
             result["changed_sections"] = []
+            result["after_version"] = expected
             if dry_run:
                 result["unified_diff"] = ""
             return result
