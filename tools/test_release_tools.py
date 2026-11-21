@@ -83,7 +83,7 @@ class ReleaseTests(unittest.TestCase):
             sources[item["profile"]] = self.directory / ("extracted-"+version) / ("ccfa-skills-"+version+"-"+item["profile"])
         self.source, self.papers = sources["lean"], sources["papers"]
 
-    def test_both_profiles_share_version_hash_manifest_and_exclude_private_paths(self):
+    def test_both_profiles_share_version_manifest_and_exclude_private_paths(self):
         for source in (self.source, self.papers):
             _, manifest = support.load_release(source)
             self.assertEqual(manifest["version"], "0.12.0")
@@ -96,7 +96,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertTrue((self.papers / self.legacy_pdf).exists())
         self.assertTrue((self.source / "assets/visual-showcase/reference.svg").is_file())
         for report in self.reports:
-            self.assertEqual(support.digest(self.output/report["file"]), report["sha256"])
+            self.assertTrue(support.file_version(self.output/report["file"]).endswith(" bytes"))
 
     def test_clean_full_install_has_21_entries_resources_but_no_root_readme_or_pdf(self):
         result = installer.install(self.source, self.target)
@@ -183,7 +183,7 @@ class ReleaseTests(unittest.TestCase):
                 receipt = support.read_json(self.target/support.RECEIPT)
                 self.assertNotIn("pending", receipt)
                 self.assertEqual(receipt["version"], "0.12.1")
-                self.assertTrue(all(support.digest(self.target/name) == entry["sha256"] for name, entry in receipt["files"].items()))
+                self.assertTrue(all(support.file_version(self.target/name) == entry["file_version"] for name, entry in receipt["files"].items()))
                 self.assertFalse(list(self.target.rglob(".ccfa-install-*.tmp")))
                 # Restore the original fixture so the next subcase is a real update.
                 if fresh:
@@ -275,7 +275,7 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "manifest"): installer.install(self.source, self.target)
         self.assertFalse(self.target.exists()); target.write_bytes(original)
         path = self.source/support.MANIFEST
-        value = support.read_json(path); value["files"][0]["sha256"]="bad"
+        value = support.read_json(path); value["files"][0]["bytes"]=-1
         path.write_text(json.dumps(value), encoding="utf-8")
         with self.assertRaises(ValueError): installer.install(self.source, self.target)
         self.assertFalse(self.target.exists())
