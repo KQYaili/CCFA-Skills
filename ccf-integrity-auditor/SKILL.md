@@ -47,6 +47,8 @@ An opt-in [scientific argument state](../ccf-common/references/scientific-argume
 
 ## Workflow
 
+For a citation-backed factual claim based on secondary reporting, or an audit asking for primary-source grounding, consult [primary-source-claim-trace.md](references/primary-source-claim-trace.md). Separate bibliography identity, provenance, actual content support and any correction/retraction/version status. Reuse existing metadata and citation checks; do not mark unseen source text VERIFIED or create another report format.
+
 1. Identify supplied manuscript, figures/tables/results, bibliography, `ccfa.yaml`, and requested audit mode.
 2. For claim or full audits, map the relevant claims to evidence and mark each as supported, partially supported, unsupported, overstated, or unclear. Numeric and citation audits track their scoped values or citations; add claim rows only when needed to resolve a finding.
    For a consequential result-to-claim or a contested mechanistic claim, use the [claim-promotion gate](../ccf-common/references/claim-promotion-gate.md). Keep theorem/proof status distinct from empirical evidence status, and report the strongest supported wording plus the unresolved discriminator. Reuse existing claim/evidence locations; do not create a claim database for an ordinary edit.
