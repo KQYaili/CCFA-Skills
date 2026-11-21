@@ -66,7 +66,7 @@ python ccf-paper-writer/scripts/writing_runtime.py apply --packet path/to/writin
 python ccf-paper-writer/scripts/writing_runtime.py impact --packet path/to/writing-packet.json
 ```
 
-For consequential manuscript revisions, the `preview` subcommand runs the **same hash-bound/section-bound/dependency checks** as apply, emits a unified diff and never replaces the manuscript. It does not grant editing permission or signal scientific approval; proceed to `apply` only after the authorized editor accepts the proposed scope and content. A preview followed by an intervening source change will fail at apply and must be regenerated. The command-line helper does not provide an interactive front end, and its cooperative lock does not control external editors.
+For consequential manuscript revisions, the `preview` subcommand runs the **same file-version/section-bound/dependency checks** as apply, emits a unified diff and never replaces the manuscript. It does not grant editing permission or signal scientific approval; proceed to `apply` only after the authorized editor accepts the proposed scope and content. A preview followed by an intervening source change will fail at apply and must be regenerated. The command-line helper does not provide an interactive front end, and its cooperative lock does not control external editors.
 
 A changed manuscript requires refreshed context and reconciliation with the current text. Never force an older patch over an independently edited version. Preserve citations, labels, equations, numbers, source format and accepted passages outside the edit. An authorized change to a protected fact needs a new factual basis and refreshed preparation, not a workaround that removes the protection.
 
@@ -105,7 +105,7 @@ Assess the supplied manuscript view without rewriting it. Compare the target and
 
 Report concrete findings with a section location, an exact available quotation, the conflicting relation and a useful repair direction. Preserve calibrated uncertainty and the author's supported rhetorical emphasis. Do not invent a defect merely because wording matches a familiar pattern.
 
-State what was actually read. Unseen sections and excerpt-only dependencies remain unchecked; hashes and successful local checks do not establish semantic agreement. Return the requested review shape, with no automatic acceptance score, new experiment request or manuscript patch.
+State what was actually read. Unseen sections and excerpt-only dependencies remain unchecked; version labels and successful local checks do not establish semantic agreement. Return the requested review shape, with no automatic acceptance score, new experiment request or manuscript patch.
 <!-- /prompt:consistency -->
 
 <!-- prompt:pending-results -->
@@ -122,4 +122,4 @@ An independent second assessment follows the existing `independent_review` prefe
 
 The helper's `review-cache` commands can track an expensive review request and its actual coverage. Use its `--help` for `begin`, `complete`, `lookup` and recovery details. Reuse requires matching content, scope, model and applicable options; pending or excerpt-only work cannot become a completed full review. If a request's execution is uncertain, establish that it stopped before explicitly abandoning it. No cache command starts a model call, and no status label substitutes for reading the text.
 
-Supply the actual model/runtime identity and all review parameters with `--model` and `--options`; include the applied rubric and policy contents or their version hashes in that options object. Hidden host configuration cannot be inferred by this local helper. Coverage describes the actual inspected material: `full` means all prepared targets were read, not that unprovided paper sections or source files were reviewed. Keep unknown and omitted coverage explicit in the existing result.
+Supply the actual model/runtime identity and all review parameters with `--model` and `--options`; include the applied rubric and policy contents or their readable file versions in that options object. Hidden host configuration cannot be inferred by this local helper. Coverage describes the actual inspected material: `full` means all prepared targets were read, not that unprovided paper sections or source files were reviewed. Keep unknown and omitted coverage explicit in the existing result.
