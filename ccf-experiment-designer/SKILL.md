@@ -43,6 +43,8 @@ Own the scientific comparison, required run conditions, and interpretation of ac
 
 ## Workflow
 
+For a requested batch/multi-seed experiment campaign, specify independent replication unit, per-arm protocol/budget identity, failure and missing-data handling before queueing. The optional read-only [experiment queue preflight](../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md) checks only job dependencies and declared ceilings; it cannot certify valid experimental replicates or launch runs. Existing [experiment-audit.md](references/experiment-audit.md) remains the downstream acceptance gate.
+
 1. Identify the requested output after both family preflights. Raw protocol planning and evidence schemas use Humanization's baseline without a manuscript rewrite. Select detailed prose/experiment checks only when applicable, and establish claims and available evidence before method-version checks.
 2. Extract the storyline from the idea or draft. Reuse the supplied claim/mechanism description. Read `../ccf-paper-writer/references/storyline-blueprint.md` only when the central claim needs clarification, not for an already specified result table.
 3. Map each major claim to sufficient evidence for its contribution type: applicable datasets/workloads, comparison methods, metrics, and a discriminating ablation, analysis, proof, or study. Planned methods use supplied specifications; reported comparisons require verified configurations. Add robustness or failure tests only when they resolve a specific claim or project decision, grounded in an observed issue or a plausible mechanism, or satisfy a verified venue requirement. Plausibility alone does not justify an unrelated test; do not enumerate remote defensive cases.
