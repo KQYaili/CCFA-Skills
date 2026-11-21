@@ -20,7 +20,7 @@ Own manuscript prose, compression, and presentation text. Assessment without rew
 
 For file edits, reuse the canonical source and one stable working directory under [artifact-contracts.md](../ccf-common/references/artifact-contracts.md), default `ccfa-workfiles/<purpose>/<artifact-id>/`. Update in place; preserve inputs, includes, labels, citations, equations, and floats. Check UTF-8/Chinese text and requested exports. Do not create dated or `v2` manuscript copies for ordinary iterations.
 
-For long-running papers where the user has an optional [scientific argument state](../ccf-common/references/scientific-argument-state.md), use its validated scientific question and throughline as a *framing brief*, not as evidence or permission to change the mechanism. The existing [writing execution workflow](references/writing-execution.md) now provides \`preview\` (read-only unified diff under the same hash/dependency checks) before an explicitly authorized \`apply\`. Keep ordinary single-paragraph edits lightweight. Frozen content is stable by editorial preference, not scientifically immune.
+For long-running papers where the user has an optional [scientific argument state](../ccf-common/references/scientific-argument-state.md), use its validated scientific question and throughline as a *framing brief*, not as evidence or permission to change the mechanism. The existing [writing execution workflow](references/writing-execution.md) now provides `preview` (read-only unified diff under the same hash/dependency checks) before an explicitly authorized `apply`. Keep ordinary single-paragraph edits lightweight. Frozen content is stable by editorial preference, not scientifically immune.
 
 ## Writing Standard
 
