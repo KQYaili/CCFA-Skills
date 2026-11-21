@@ -138,6 +138,9 @@ def parser():
     prepare.add_argument("--results-pending", choices=["off", "on"],
                          help="Reuse resolved preflight choice; on permits marked conditional drafting, never fabricated results")
     prepare.add_argument("--project", type=Path, help="Explicit project root for optional preference overrides")
+    preview = commands.add_parser("preview", help="Validate the exact scoped patch and print a read-only unified diff")
+    preview.add_argument("--packet", required=True)
+    preview.add_argument("--patch", required=True, help="Same hash-bound JSON as apply")
     apply = commands.add_parser("apply", help="Apply literal edits only to the prepared version and sections")
     apply.add_argument("--packet", required=True)
     apply.add_argument("--patch", required=True, help="JSON: base_sha256, edits[{section_id,before,after}]")
@@ -198,6 +201,8 @@ def run(args):
                     "targets": packet["targets"], "mode": args.mode}
         return packet
     packet = read_json(args.packet)
+    if args.command == "preview":
+        return apply_patch(packet, read_json(args.patch), dry_run=True)
     if args.command == "apply":
         return apply_patch(packet, read_json(args.patch))
     if args.command == "impact":
