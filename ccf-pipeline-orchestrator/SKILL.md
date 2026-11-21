@@ -40,7 +40,7 @@ When [researcher-profile.md](../ccf-common/references/researcher-profile.md) is 
 
 When a set of experiments completes, route its results through the [result-to-claim gate](../ccf-integrity-auditor/references/result-to-claim-gate.md) before any drafting consumes them: deterministic evidence pre-check first, then an independent cross-model support judgment, with `no` recorded as a first-class outcome. Drafting owners receive only claims that left the gate as `yes` or as the recorded `partial` revision.
 
-For an explicitly authorized multi-session paper project, optionally coordinate a [per-paper scientific argument state](../ccf-common/references/scientific-argument-state.md) linking the research question, competing explanations, evidence anchors and paragraph lifecycle. Reuse the existing project task directory and \`ccfa.yaml\` claim/experiment fields, with no schema migration or duplicate evidence store. Distinguish proposed updates from records already committed by an authorized owner. No state file is required for routine routing or planning.
+For an explicitly authorized multi-session paper project, optionally coordinate a [per-paper scientific argument state](../ccf-common/references/scientific-argument-state.md) linking the research question, competing explanations, evidence anchors and paragraph lifecycle. Reuse the existing project task directory and `ccfa.yaml` claim/experiment fields, with no schema migration or duplicate evidence store. Distinguish proposed updates from records already committed by an authorized owner. No state file is required for routine routing or planning.
 
 ## Workflow
 
