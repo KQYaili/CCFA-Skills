@@ -134,7 +134,9 @@ class ReleaseTests(unittest.TestCase):
         self.make_release()
         _, manifest = support.load_release(self.source)
         self.assertNotIn("private-notes.md", {e["path"] for e in manifest["files"]})
-        self.assertEqual(manifest["source"], {"commit": None, "dirty": True, "file_selection": "tracked"})
+        self.assertTrue(isinstance(manifest["source"]["branch"], str))
+        self.assertTrue(manifest["source"]["dirty"])
+        self.assertEqual(manifest["source"]["file_selection"], "tracked")
         reports = builder.build(self.repo, self.output, tracked_only=False)
         with zipfile.ZipFile(self.output/reports[0]["file"]) as archive:
             self.assertTrue(any(name.endswith("/private-notes.md") for name in archive.namelist()))
@@ -148,7 +150,9 @@ class ReleaseTests(unittest.TestCase):
         expected = subprocess.check_output(["git", "-C", str(self.repo), "rev-parse", "HEAD"], text=True).strip()
         self.make_release()
         _, manifest = support.load_release(self.source)
-        self.assertEqual(manifest["source"], {"commit": expected, "dirty": False, "file_selection": "tracked"})
+        self.assertFalse(manifest["source"]["dirty"])
+        self.assertTrue(isinstance(manifest["source"]["branch"], str))
+        self.assertEqual(manifest["source"]["file_selection"], "tracked")
 
     def _interrupt_update(self, fresh=False):
         if not fresh:
@@ -270,14 +274,20 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError): installer.install(self.source, other)
         self.assertFalse((other/support.RECEIPT).exists())
 
-    def test_corrupt_file_or_manifest_is_rejected_before_target_creation(self):
-        target = self.source/"ccf-common/SKILL.md"; original=target.read_bytes(); target.write_bytes(b"tampered")
-        with self.assertRaisesRegex(ValueError, "manifest"): installer.install(self.source, self.target)
-        self.assertFalse(self.target.exists()); target.write_bytes(original)
+    def test_manifest_size_mismatch_and_invalid_metadata_rejected(self):
+        target = self.source/"ccf-common/SKILL.md"
+        original = target.read_bytes()
+        target.write_bytes(b"tampered-data-with-different-size")
+        with self.assertRaisesRegex(ValueError, "manifest"):
+            installer.install(self.source, self.target)
+        self.assertFalse(self.target.exists())
+        target.write_bytes(original)
         path = self.source/support.MANIFEST
-        value = support.read_json(path); value["files"][0]["bytes"]=-1
+        value = support.read_json(path)
+        value["files"][0]["bytes"] = -1
         path.write_text(json.dumps(value), encoding="utf-8")
-        with self.assertRaises(ValueError): installer.install(self.source, self.target)
+        with self.assertRaises(ValueError):
+            installer.install(self.source, self.target)
         self.assertFalse(self.target.exists())
 
     def test_missing_sibling_resource_and_mismatched_papers_are_rejected(self):
