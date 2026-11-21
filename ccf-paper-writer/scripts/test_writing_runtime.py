@@ -67,7 +67,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertIn("模型保留分组特征", json.dumps(packet["context"], ensure_ascii=False))
         self.assertIn("局部差异与性能变化", json.dumps(packet["context"], ensure_ascii=False))
         self.assertTrue(any(d["path"] == str(self.data) for d in packet["dependencies"]))
-        self.assertEqual(packet["patch_schema"]["base_sha256"], packet["manuscript"]["sha256"])
+        self.assertEqual(packet["patch_schema"]["base_version"], packet["manuscript"]["version"])
 
     def test_safe_patch_preserves_other_sections_bom_and_crlf(self):
         packet = self.prepare()
@@ -75,7 +75,7 @@ class WritingRuntimeTests(unittest.TestCase):
         patch = self.root / "patch.json"
         before = "The grouped model reaches 82.0% accuracy."
         after = "Retaining grouped features raises accuracy from 79.0% to 82.0%."
-        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"],
+        self.write(patch, {"base_version": packet["manuscript"]["version"],
                            "edits": [{"section_id": "results", "before": before, "after": after}]})
         result = self.cli("apply", "--packet", self.packet, "--patch", patch)
         self.assertEqual(result["changed_sections"], ["results"])
@@ -87,7 +87,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertEqual(packet["operation"], "review")
         self.assertNotIn("patch_schema", packet)
         patch = self.root / "patch.json"
-        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"], "edits": []})
+        self.write(patch, {"base_version": packet["manuscript"]["version"], "edits": []})
         self.cli("apply", "--packet", self.packet, "--patch", patch, ok=False)
 
     def test_source_change_blocks_edit_and_reports_section_figure_impact(self):
@@ -99,7 +99,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertIn("figure:main", serialized)
         self.assertIn("results", serialized)
         patch = self.root / "patch.json"
-        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"], "edits": []})
+        self.write(patch, {"base_version": packet["manuscript"]["version"], "edits": []})
         self.cli("apply", "--packet", self.packet, "--patch", patch, ok=False)
 
     def test_packet_update_in_place_and_refuse_overwriting_inputs(self):
