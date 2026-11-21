@@ -35,6 +35,8 @@ Identify the draft phase. Internal alignment checks of content-first or results-
 
 For a substantial scientific/full manuscript audit, use the shared [manuscript quality audit](../ccf-common/references/manuscript-audit-standard.md) to prioritize P0 claim-to-evidence and experiment logic, then P1 interpretability and P2 compliance as applicable. The 15 author checks and supplementary safeguards are **candidate checks, not presumed faults**. Writing-only review reports textual scope, not a fabricated scientific validation; keep the existing review rubric, severity and fixed report format.
 
+For a substantive **writing/full review** where the paper reads like disconnected engineering evaluations or its research questions do not connect to its results, load the [reverse-outline and scientific claim-chain audit](references/reverse-outline-claim-chain.md). Use it as a diagnostic pass within the existing review format: reconstruct paragraph functions, check RQ-to-evidence links, and state the strongest unexcluded rival explanation. Do not produce a second review report or silently turn an exploratory association into a causal conclusion.
+
 ## Evidence And Findings
 
 Read the supplied scientific work and relevant dependencies at the requested coverage; filenames and excerpts do not establish whole-paper inspection. Reconstruct contributions, claims and support before judgment. Anchor concerns to actual locations. For every major/critical concern, inspect the strongest supplied passage or appendix that could answer it; record the countercheck and withdraw or narrow refuted criticism. Separate confirmed flaw, unsupported claim, clarification and missing input. Do not force praise, disagreement, or a concern quota.
