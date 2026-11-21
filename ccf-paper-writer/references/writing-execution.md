@@ -53,7 +53,7 @@ The prepared view retains the target and neighboring excerpts, together with app
 
 ## Optional scientific problem state
 
-For an established multi-session paper where the scientific storyline has drifted, consult [the optional argument state](../../ccf-common/references/scientific-argument-state.md) only when an existing record is supplied or the project authorizes one. Its validator can export a minimal \`message / throughline\` brief to the existing \`--brief\` interface. Evidence refs and paragraph status are not empirical proof, do not change \`ccfa.yaml\`, and never make a frozen/verified paragraph exempt from an actual scientific error report. A simple paragraph edit needs no new state file.
+For an established multi-session paper where the scientific storyline has drifted, consult [the optional argument state](../../ccf-common/references/scientific-argument-state.md) only when an existing record is supplied or the project authorizes one. Its validator can export a minimal `message / throughline` brief to the existing `--brief` interface. Evidence refs and paragraph status are not empirical proof, do not change `ccfa.yaml`, and never make a frozen/verified paragraph exempt from an actual scientific error report. A simple paragraph edit needs no new state file.
 
 ## Apply A Localized Edit And Follow Its Impact
 
