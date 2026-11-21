@@ -42,7 +42,7 @@ The Markdown check command above is **only help inspection**; invoke its documen
 
 The included unit test covers successful dependency waves, invalid budget, unknown/cyclic dependencies, duplicate outputs, invalid inputs and no execution. Then manually inspect one generated manifest:
 
-1. Start with the example in [experiment-queue-preflight.md](../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md) and save it in a temporary working folder.
+1. Start with the example in [experiment-queue-preflight.md](../../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md) and save it in a temporary working folder.
 2. Run `python ccf-pipeline-orchestrator/scripts/experiment_queue_preflight.py --manifest <path>`.
 3. Confirm `status=PREFLIGHT_ONLY_REQUIRES_AUTHORIZED_SCHEDULER`, `commands_executed=false`, accurate worst-case GPU-hours, correct dependency waves, and zero created experiment output directories.
 4. Alter the manifest to exceed `max_gpu_hours`; the command must fail without any process launch.
