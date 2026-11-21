@@ -451,7 +451,7 @@ class ResearchLoopTests(unittest.TestCase):
         self.assertEqual(LOOP.run(other, "retry")["attempt"]["outcome"], "crash")
         self.assertEqual(self.calls(), ["crash", "crash"])
 
-    def test_total_execution_budget_and_contract_hash_are_enforced(self):
+    def test_total_execution_budget_and_contract_revision_are_enforced(self):
         self.edit("timeout")
         self.contract["budgets"].update(max_seconds=0.2, timeout_seconds=2)
         other = self.project / "ccfa-workfiles" / "experiments" / "short-budget"
@@ -846,10 +846,10 @@ class ResearchLoopTests(unittest.TestCase):
         state = LOOP._load(work)
         self.assertNotEqual(state["environment_identity"]["variables"]["CCFA_TEST_COMPARE_ID"], "first")
 
-    def test_fast_status_and_context_skip_hashes_but_run_still_checks(self):
+    def test_fast_status_and_context_skip_rechecks_but_run_still_checks(self):
         self.baseline()
-        with patch.object(LOOP, "_manifest", side_effect=AssertionError("data should not be rehashed")), \
-                patch.object(LOOP, "_metric_evidence", side_effect=AssertionError("metrics should not be rehashed")):
+        with patch.object(LOOP, "_manifest", side_effect=AssertionError("data should not be rechecked")), \
+                patch.object(LOOP, "_metric_evidence", side_effect=AssertionError("metrics should not be rechecked")):
             status = LOOP.status(self.workdir, fast=True)
             recall = LOOP.context(self.workdir, limit=1, fast=True)
         self.assertEqual(status["integrity"], "not_rechecked")
