@@ -140,9 +140,9 @@ class ArtifactScopeTests(unittest.TestCase):
         os.link(target, link)
         with self.scope().transaction(create=True) as scope:
             # Even a forged claim to a hard-linked file must not permit cleanup.
-            from artifact_scope import fingerprint
+            from artifact_scope import file_record
             with self.assertRaises(ValueError):
-                fingerprint(link)
+                file_record(link)
         link.unlink()
         try:
             link.symlink_to(target)
@@ -316,7 +316,7 @@ class ArtifactScopeTests(unittest.TestCase):
         command = [sys.executable, "-c", "import subprocess,sys; subprocess.run([sys.executable,'-c',sys.argv[1],sys.argv[2]],check=True)", child, str(self.root / "preview.txt")]
         with self.scope().transaction(create=True) as scope:
             self.assertEqual(scope.run(["preview.txt"], command), 0)
-            self.assertEqual(scope.inventory["files"]["preview.txt"]["fingerprint"]["size"], len("complete"))
+            self.assertEqual(scope.inventory["files"]["preview.txt"]["file_record"]["size"], len("complete"))
 
     def test_schema_rejects_ambiguous_paths_and_boolean_version(self):
         for value in ({"version": True, "files": {}, "pending": []},
