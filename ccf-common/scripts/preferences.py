@@ -10,13 +10,13 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import copy
-import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
 import os
 from pathlib import Path
 import secrets
+from readable_versions import file_stamp, is_stamp
 import sys
 import tempfile
 import threading
@@ -166,7 +166,7 @@ class PreferenceStore:
             raise PreferenceError(
                 "malformed_stored_config", "Invalid stored configuration at " + str(path) + ": " + str(exc), 422
             ) from exc
-        return config, hashlib.sha256(data).hexdigest()
+        return config, file_stamp(path)
 
     def _snapshot(self, scope):
         self._path(scope)
@@ -232,9 +232,7 @@ class PreferenceStore:
     def save(self, scope, revision, config):
         path = self._path(scope)
         config = validate_config(config)
-        if type(revision) is not str or not (revision == "missing" or (
-            len(revision) == 64 and all(char in "0123456789abcdef" for char in revision)
-        )):
+        if type(revision) is not str or not (revision == "missing" or is_stamp(revision)):
             raise PreferenceError("invalid_config", "A valid revision from the last read is required.")
         encoded = (json.dumps(config, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         with self.lock:
