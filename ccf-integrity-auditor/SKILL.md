@@ -43,6 +43,8 @@ Citation crosscheck (deep mode): when a bibliography changes materially, apply [
 
 Exploration integrity and scope calibration: when auditing a study with a preregistration / run-log / closure record, apply [exploration-integrity-audit.md](references/exploration-integrity-audit.md): a claim advocating a route the record marks as a dead end is a hard contradiction, a record with zero dead ends is itself a finding, and claim scope is checked against the explored evidence in both directions (over- and under-claiming).
 
+An opt-in [scientific argument state](../ccf-common/references/scientific-argument-state.md) may identify claim-to-source anchors and scoped paragraph verification receipts. Treat these as leads requiring actual source inspection, not proof. Compare the recorded source version and full-manuscript hash where available; flag stale receipts and evidence-status inflation. A \`verified\` or \`frozen\` label never excuses a material contradiction. Do not mutate state unless explicitly assigned and authorized.
+
 ## Workflow
 
 1. Identify supplied manuscript, figures/tables/results, bibliography, `ccfa.yaml`, and requested audit mode.
