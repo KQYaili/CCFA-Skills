@@ -30,6 +30,8 @@ Keep the user's goal, justified route, and next action distinct. Discovery can c
 
 Explicit autonomous research or repeated experiments route to the orchestrator's [research loop](../ccf-pipeline-orchestrator/references/autonomous-research.md), using its authorized scope and budget. Ordinary writing, concept review, and planning do not start experiments.
 
+For an ongoing paper whose scientific question, rival hypotheses and manuscript status need continuity across sessions, consult the **optional** [scientific argument state](references/scientific-argument-state.md). It is a per-paper, versioned index to existing evidence, not a new compulsory project database, \`ccfa.yaml\` extension, or substitute for reading the paper. Do not create it during ordinary tasks or override ownership/permissions.
+
 ## Select Shared Rules By Need
 
 | Decision | Reference |
