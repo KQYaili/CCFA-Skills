@@ -25,6 +25,18 @@ Good CCF-A problems tend to have at least one of these properties:
 - They connect two areas in a way that creates a new capability or question.
 - They make a hidden evaluation gap measurable.
 
+## Optional Three-Layer Research Question Scaffold
+
+Use this scaffold for a mature multi-claim idea, a research proposal, or a request to make an engineering comparison scientifically interpretable. **Do not force three RQs**: use only layers that distinguish actual questions. Derive them from observed phenomena and verified gaps, not from the names of implementation modules.
+
+| Layer | Research question | What would answer or falsify it? |
+| --- | --- | --- |
+| **RQ1: phenomenon** | What performance pattern, limitation, or capability needs explaining? | A defined estimand, observation unit, fair comparator, measured effect, or formal proposition. |
+| **RQ2: mechanism** | Which proposed explanation accounts for the pattern rather than a credible alternative? | A contrasting prediction, controlled intervention, counterexample, or proof obligation. |
+| **RQ3: boundary (optional)** | When would this explanation fail or reverse, and for which tasks/populations? | A pre-specified stratum, held-out case, assumption stress test, or documented negative result. |
+
+For each selected layer, record the **question → rival explanation → distinguishing prediction → available evidence / missing discriminator**. A post-hoc observation may motivate RQ2 but cannot retroactively become independent confirmation; preserve its discovery status. A paper with a single strong RQ does not need extra layers for appearance. For substantial hypothesis generation, reuse the existing [rival-hypothesis scaffold](../../ccf-idea-reviewer/references/hypothesis-generation.md) rather than inventing a parallel procedure.
+
 ## Method Mechanism
 
 For a model-capability question, first locate what prevents the requested behavior. Start from the supplied failure or a precisely stated hypothetical case; do not invent an observed failure. Compare the explanations that are plausible for this setting rather than filling every row:

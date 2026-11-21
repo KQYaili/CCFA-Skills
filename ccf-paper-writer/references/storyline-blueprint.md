@@ -19,6 +19,10 @@ These are thinking prompts, not mandatory headings or a fixed paragraph sequence
 
 For new manuscripts, `materials-to-manuscript.md` controls pending results and content before page fitting. A planned comparison does not establish an effect.
 
+## Reverse-Outline Check For Structural Revisions
+
+When an existing manuscript has an unclear central argument or reads like a list of experiments, first extract the **opening sentence or actual job of each paragraph** in the affected sections. Read those openings in order: is the scientific phenomenon introduced before the implementation, are assumptions and competing explanations identifiable, and does each results paragraph answer a stated question? Move, combine, or qualify only paragraphs whose role is missing, duplicated, or misplaced. This is a writing diagnostic, not evidence that a mechanism has been scientifically validated; request an evidence check from the reviewer/auditor when needed. A local sentence polish does not trigger a full reverse outline.
+
 ## Compose Before Checking
 
 Choose the scientific message of the next paragraph and the supplied facts or reasoning that develop it. Use the research object as the subject and state its operation, property, or observed behavior. Introduce technical terms where the reader needs them, then carry them through the explanation.
