@@ -54,7 +54,8 @@ ccf-latex-templates/
 |   |-- icml2026.bst
 |   |-- algorithm.sty / algorithmic.sty / fancyhdr.sty / natbib.sty
 |   |-- example_paper.tex / .bib
-|-- CVPR/                          # CVPR 2026 (CVF/TheCVF)
+|-- CVPR/                          # CVPR 2026 files at this level
+|   |-- 2027/                      # Complete CVPR 2027 official v1 kit and source hashes
 |   |-- cvpr.sty                 # (verified 2026)
 |   |-- main.tex / preamble.tex / rebuttal.tex
 |   |-- main.bib

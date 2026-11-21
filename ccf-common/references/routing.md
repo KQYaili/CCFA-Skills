@@ -119,6 +119,7 @@ For manuscript writing from an idea or research documents, `ccf-paper-writer` es
 | 先判断思路是否值得做，再帮我完善 | `ccf-idea-reviewer`, then `ccf-idea-optimizer` |
 | 监控竞品 / 追踪新论文 / 最近有没有类似 idea | `ccf-literature-monitor` |
 | 搜索 related work、benchmark 和还有哪些 open gap | `ccf-literature-searcher` |
+| 精读一篇指定论文，解释公式或表格中的结果 | `ccf-literature-searcher` |
 | 设计对比实验、消融和结果表 | `ccf-experiment-designer` |
 | 根据真实结果规划论文图表的数据和证据结构 | `ccf-experiment-designer` |
 | 优化图表排版 / 选择论文配色 / 多面板 figure 放正文里 | `ccf-visual-composer` |

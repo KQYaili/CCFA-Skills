@@ -216,23 +216,37 @@ def line_band(ax, x, y, *, lower=None, upper=None, label=None, color=None,
 
 
 def density_map(ax, x, y, *, gridsize=28, xscale="linear", yscale="linear",
-                cmap="viridis", xlabel="", ylabel=""):
+                cmap="viridis", xlabel="", ylabel="", counts=None):
     """Hexagonal counts of supplied observations; color uses a logarithmic scale.
 
     Empty bins are omitted. Axis transforms do not change the input coordinates
-    or discard observations. The returned mappable can label a count colorbar.
+    or discard observations. Optional integer counts give the multiplicity at
+    each supplied coordinate. The returned mappable can label a count colorbar.
     """
     x, y = _vector(x, "x"), _vector(y, "y"); _same_length(x, y)
     if not isinstance(gridsize, (int, np.integer)) or isinstance(gridsize, (bool, np.bool_)) or gridsize < 2:
         raise ValueError("gridsize must be an integer of at least two")
+    bin_options = {"mincnt": 1}
+    if counts is not None:
+        counts = np.asarray(counts)
+        if counts.shape != x.shape or counts.dtype.kind not in "iuf":
+            raise ValueError("Supply one numeric count per coordinate")
+        if not np.isfinite(counts).all() or np.any(counts < 0) or np.any(counts != np.floor(counts)):
+            raise ValueError("Counts must be finite nonnegative integers")
+        total = sum(map(int, counts))
+        if not 0 < total <= 2**53:
+            raise ValueError("Count total must be positive and exactly representable up to 2**53")
+        occupied = counts > 0
+        x, y = x[occupied], y[occupied]
+        bin_options = {"C": counts[occupied].astype(float), "reduce_C_function": np.sum}
     for values, scale, name in ((x, xscale, "x"), (y, yscale, "y")):
         if scale not in ("linear", "log"):
             raise ValueError(f"{name}scale must be linear or log")
         if scale == "log" and np.any(values <= 0):
             raise ValueError(f"Log {name} axis requires strictly positive observations")
-    artist = ax.hexbin(x, y, gridsize=int(gridsize), mincnt=1, cmap=cmap,
+    artist = ax.hexbin(x, y, gridsize=int(gridsize), cmap=cmap,
                       norm=mcolors.LogNorm(), xscale=xscale, yscale=yscale,
-                      linewidths=0, rasterized=False)
+                      linewidths=0, rasterized=False, **bin_options)
     ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); clean_axes(ax, None)
     return artist
 

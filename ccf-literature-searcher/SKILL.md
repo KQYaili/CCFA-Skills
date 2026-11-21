@@ -1,6 +1,6 @@
 ---
 name: ccf-literature-searcher
-description: "Find and verify external literature, prior art, datasets, benchmarks, and citation candidates. Use for 文献检索, 相关工作, benchmark搜索, and research opportunity maps. Recurring recent-paper watch belongs to ccf-literature-monitor; existing-citation audits, manuscript assessment, and result schemas have separate owners."
+description: "Find and verify literature, prior art, datasets and benchmarks. Explain a named paper using its equations, figures and experimental evidence. Use for 文献检索, 单篇论文精读, 相关工作, benchmark搜索, citation candidates and opportunity maps. Recurring paper watch belongs to ccf-literature-monitor and manuscript assessment to ccf-paper-reviewer."
 metadata:
   ccf_skill_controls:
     handoff_question_mode: partial
@@ -21,6 +21,8 @@ Before browsing, apply [privacy-and-evidence.md](../ccf-common/references/privac
 Use Common's [task modes](../ccf-common/references/task-modes.md): exploratory for direction/opportunity scouting, quick for a small lookup, standard for substantial related-work/novelty/benchmark retrieval. A helper's scope does not become a full standalone search merely because another skill will use it. The user's requested breadth wins; planning ranges are not quotas.
 
 ## Retrieve And Verify
+
+For a request to understand one named paper, use the supplied version and the [single-paper reading guide](references/single-paper-reading.md). An explanation can start directly from the relevant equation or result.
 
 Read [search-and-scoring.md](references/search-and-scoring.md) for source roles, query/reuse strategy, taxonomy, relevant scoring anchors and standalone search guidance. Ground substantive claims in inspected original papers or primary artifacts. Indexes and stable landing pages establish identity; snippets, citation counts, institutional prestige and awards do not establish scientific findings. Include relevant technical reports, conference/journal papers and arXiv originals according to their content, version and status.
 

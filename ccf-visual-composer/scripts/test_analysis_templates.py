@@ -45,6 +45,13 @@ class AnalysisTemplateTests(unittest.TestCase):
         data.pop("_meta", None)
         return data
 
+    def test_density_threshold_uses_observation_multiplicity(self):
+        data = self.data("sensitivity_dynamics")
+        data["density"].update(x=[1, 3, 5], y=[.1, 2, 8], counts=[9, 1, 0], threshold=.1)
+        figure = self.render("sensitivity_dynamics", data)
+        labels = [text.get_text() for ax in figure.axes for text in ax.texts]
+        self.assertIn("90.0% at or below 0.1", labels)
+
     def render(self, name, data=None):
         return templates.render_template(name, self.data(name) if data is None else data)
 
