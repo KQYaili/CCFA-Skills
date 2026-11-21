@@ -39,6 +39,8 @@ Create the requested project structure, template, and state without inventing re
 5. Check the created paths, template references, and YAML. A build is useful when a runnable template was requested and an engine is available; do not run research experiments or final submission checks for directory setup.
 6. Report the actual created/updated paths and any concrete missing dependency. For a dry run, return the proposed tree and actions without writing files.
 
+**Optional scientific state.** Do not scaffold an argument-state file by default. When the user explicitly requests persistent per-paper scientific questions or an established multi-session project needs that artifact, follow [scientific-argument-state.md](../ccf-common/references/scientific-argument-state.md) and the existing artifact paths. Its helper refuses to overwrite existing files. Preserve `ccfa.yaml` schema and all existing project files.
+
 ## Boundaries
 
 Use `../ccf-common/references/artifact-contracts.md` for file ownership. Research codebase selection, model implementation, and training/dependency environments belong to `ccf-research-engineer`; a request to set up a runnable research baseline needs that owner rather than only a directory tree. For combined requests, complete the requested structure and pass existing paths to the engineer without replacing the project or creating a second scaffold. Project workflow planning belongs to `ccf-pipeline-orchestrator`, manuscript prose to `ccf-paper-writer`, and final package checks to `ccf-submission-checker`. Do not invent a title, abstract, claim, experiment, or citation.

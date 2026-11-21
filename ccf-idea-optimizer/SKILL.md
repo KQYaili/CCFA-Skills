@@ -56,6 +56,8 @@ When contributing to explicitly requested autonomous research, use the current o
 
 For a requested science-first reformulation of an implementation-led project, consult the **optional three-layer RQ scaffold** in [problem-method-blueprint.md](references/problem-method-blueprint.md). Separate the observed phenomenon, the explanation to test, and any informative boundary; do not rebrand existing benchmark gains as a new mechanistic proof or prescribe three experiments by default.
 
+For an established manuscript using the opt-in [scientific argument state](../ccf-common/references/scientific-argument-state.md), propose the scientific question, rival hypotheses and discriminating predictions against real observations. The project owner decides whether to persist them; a proposed prediction is not a validated result. Do not create state for a standalone concept review.
+
 ## Output Contract
 
 Return an idea card, options, mechanism blueprint, or roadmap as requested. A standard plan contains the problem, source-backed gap, insight, method, contribution type, evidence plan, closest-work difference, material assumptions, and next decision. Include candidate alternatives only when developed and useful. Keep branch bookkeeping, reviewer simulation, and generic checklist status out of publication prose.

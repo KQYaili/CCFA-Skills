@@ -20,6 +20,7 @@ users of this module; it is not a filesystem-wide lock against other editors.
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 import os
 from pathlib import Path
@@ -331,7 +332,7 @@ def _validate_inventory(supplied, actual):
                 raise ManuscriptPatchError(f"stale inventory: {section_id}.{field}")
 
 
-def apply_patch(packet, patch):
+def apply_patch(packet, patch, dry_run=False):
     """Apply literal edits only to target sections on the exact declared revision.
 
     Relative dependency paths are relative to the manuscript's directory. An
@@ -343,7 +344,8 @@ def apply_patch(packet, patch):
     Cross-section and figure-to-section relationships must be supplied by the
     caller; they are not inferred here. operation='review' packets are read-only.
     Returns before_sha256, after_sha256, changed_sections (document order), and
-    changed. An empty edit list or literal no-op does not replace the manuscript.
+    changed. dry_run adds a unified_diff field and never changes the manuscript.
+    An empty edit list or literal no-op does not replace the manuscript.
     """
     if not isinstance(packet, dict) or type(packet.get("schema_version")) is not int or packet["schema_version"] != 1:
         raise ManuscriptPatchError("packet.schema_version must be 1")
@@ -406,6 +408,14 @@ def apply_patch(packet, patch):
                   "changed": result_data != data}
         if not result["changed"]:
             result["changed_sections"] = []
+            if dry_run:
+                result["unified_diff"] = ""
+            return result
+        if dry_run:
+            original_text = _read(path)[1]
+            result["unified_diff"] = "".join(difflib.unified_diff(
+                original_text.splitlines(keepends=True), text.splitlines(keepends=True),
+                fromfile="a/" + path.name, tofile="b/" + path.name))
             return result
         temporary = None
         try:

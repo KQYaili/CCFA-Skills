@@ -51,14 +51,22 @@ The prepared view retains the target and neighboring excerpts, together with app
 
 `--max-chars N` bounds the serialized `context` JSON in characters. Guidance and identity metadata occupy additional space; this is not a total-packet limit or a measured token count. The helper never shortens the target or scientific brief. Optional excerpts may be shortened with explicit omitted locations, which remain unread until retrieved. If the necessary context cannot fit, select a coherent smaller scope or retrieve the specific dependency. Keep one owner responsible for integrating the argument; target IDs do not imply one agent per paragraph.
 
+## Optional scientific problem state
+
+For an established multi-session paper where the scientific storyline has drifted, consult [the optional argument state](../../ccf-common/references/scientific-argument-state.md) only when an existing record is supplied or the project authorizes one. Its validator can export a minimal `message / throughline` brief to the existing `--brief` interface. Evidence refs and paragraph status are not empirical proof, do not change `ccfa.yaml`, and never make a frozen/verified paragraph exempt from an actual scientific error report. A simple paragraph edit needs no new state file.
+
 ## Apply A Localized Edit And Follow Its Impact
 
 The packet carries the current source identity and authorized target. Return a localized patch in its actual schema, then apply it against that packet:
 
 ```bash
+python ccf-paper-writer/scripts/writing_runtime.py preview --packet path/to/writing-packet.json --patch path/to/patch.json
+# Review the returned unified_diff and ensure the intended change is authorized.
 python ccf-paper-writer/scripts/writing_runtime.py apply --packet path/to/writing-packet.json --patch path/to/patch.json
 python ccf-paper-writer/scripts/writing_runtime.py impact --packet path/to/writing-packet.json
 ```
+
+For consequential manuscript revisions, the `preview` subcommand runs the **same hash-bound/section-bound/dependency checks** as apply, emits a unified diff and never replaces the manuscript. It does not grant editing permission or signal scientific approval; proceed to `apply` only after the authorized editor accepts the proposed scope and content. A preview followed by an intervening source change will fail at apply and must be regenerated. The command-line helper does not provide an interactive front end, and its cooperative lock does not control external editors.
 
 A changed manuscript requires refreshed context and reconciliation with the current text. Never force an older patch over an independently edited version. Preserve citations, labels, equations, numbers, source format and accepted passages outside the edit. An authorized change to a protected fact needs a new factual basis and refreshed preparation, not a workaround that removes the protection.
 
