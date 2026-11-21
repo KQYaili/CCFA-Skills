@@ -41,6 +41,7 @@ jobs:
       - run: python ccf-common/scripts/test_figure_registry.py
       - run: python ccf-common/scripts/check_figure_registry.py examples/figure-registry.example.json
       - run: python ccf-paper-writer/scripts/test_manuscript_patch.py
+      - run: python -m unittest discover -s ccf-common/tests -p test_scientific_argument_and_preview.py
       - run: python ccf-paper-writer/scripts/test_writing_context.py
       - run: python ccf-paper-writer/scripts/test_writing_review_cache.py
       - run: python ccf-paper-writer/scripts/test_writing_runtime.py
@@ -65,6 +66,7 @@ jobs:
       - run: python -m pip install pyyaml
       - run: python ccf-common/scripts/test_preferences.py
       - run: python ccf-paper-writer/scripts/test_manuscript_patch.py
+      - run: python -m unittest discover -s ccf-common/tests -p test_scientific_argument_and_preview.py
       - run: python ccf-paper-writer/scripts/test_writing_runtime.py
       - run: python ccf-paper-reviewer/scripts/test_prepare_expert_review.py
       - run: python tools/test_release_tools.py

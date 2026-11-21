@@ -47,6 +47,8 @@ For verified paragraphs, provide a current **full-file SHA-256** in `manuscript_
 
 ## Paragraph lifecycle
 
+To obtain the manuscript digest for a receipt, run the writer's [inspect command](../../ccf-paper-writer/references/writing-execution.md#prepare-only-the-material-needed) and copy its `sha256` field. Its UTC modification time and byte count help you recognize the file during a handoff.
+
 - `todo`: not written; no claim of missing evidence unless checked.
 - `draft`: working prose; ordinary authorized revisions are permitted.
 - `review`: under review; reviewer does not gain edit rights.

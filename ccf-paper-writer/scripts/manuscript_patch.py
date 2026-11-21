@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import difflib
 import hashlib
+import io
 import os
 from pathlib import Path
 import re
@@ -30,6 +31,7 @@ import stat
 import tempfile
 import unicodedata
 from contextlib import contextmanager
+from datetime import datetime, timezone
 
 
 class ManuscriptPatchError(ValueError):
@@ -73,11 +75,15 @@ def _plain_path(value, base=None, require_file=True):
 
 def _read(path):
     try:
-        data = path.read_bytes()
+        with path.open("rb") as stream:
+            data = stream.read()
+            modified = os.fstat(stream.fileno()).st_mtime
         text = (data[len(_BOM):] if data.startswith(_BOM) else data).decode("utf-8")
     except (OSError, UnicodeError) as exc:
         raise ManuscriptPatchError(f"cannot read strict UTF-8 manuscript: {path}: {exc}") from exc
-    return data, text
+    revision = {"modified_utc": datetime.fromtimestamp(modified, timezone.utc).isoformat(timespec="microseconds"),
+                "bytes": len(data)}
+    return data, text, revision
 
 
 def _markdown_headings(text):
@@ -241,8 +247,8 @@ def _inventory(path, data, text):
 def inspect_manuscript(path):
     """Return a strict UTF-8 inventory; offsets exclude an optional BOM."""
     path = _plain_path(path)
-    data, text = _read(path)
-    return _inventory(path, data, text)
+    data, text, revision = _read(path)
+    return {**_inventory(path, data, text), "revision": revision}
 
 
 def _strings(value, name, allow_empty=False):
@@ -343,8 +349,9 @@ def apply_patch(packet, patch, dry_run=False):
     checks but may be missing; unrelated source removal does not block a patch.
     Cross-section and figure-to-section relationships must be supplied by the
     caller; they are not inferred here. operation='review' packets are read-only.
-    Returns before_sha256, after_sha256, changed_sections (document order), and
-    changed. dry_run adds a unified_diff field and never changes the manuscript.
+    Returns before_sha256, after_sha256, changed_sections (document order),
+    changed, the observed before_revision and the resulting byte count.
+    dry_run adds a unified_diff field and never changes the manuscript.
     An empty edit list or literal no-op does not replace the manuscript.
     """
     if not isinstance(packet, dict) or type(packet.get("schema_version")) is not int or packet["schema_version"] != 1:
@@ -367,10 +374,10 @@ def apply_patch(packet, patch, dry_run=False):
     dependencies = _dependencies(packet, path, targets)
     with _exclusive_lock(path):
         _plain_path(path)
-        data, text = _read(path)
+        data, original_text, before_revision = _read(path)
         if _digest(data) != expected:
             raise ManuscriptPatchError("manuscript changed since packet creation")
-        inventory = _inventory(path, data, text)
+        inventory = _inventory(path, data, original_text)
         sections = {entry["id"]: entry for entry in inventory["sections"]}
         if any(target not in sections for target in targets):
             raise ManuscriptPatchError("target section does not exist in current manuscript")
@@ -399,11 +406,13 @@ def apply_patch(packet, patch, dry_run=False):
             if left[1] > right[0]:
                 raise ManuscriptPatchError("overlapping edits are not allowed")
         changed_ids = {item[3] for item in replacements if item[4]}
+        text = original_text
         for start, end, after, _, _ in reversed(replacements):
             text = text[:start] + after + text[end:]
         result_data = (_BOM if data.startswith(_BOM) else b"") + text.encode("utf-8")
         result_hash = _digest(result_data)
         result = {"before_sha256": expected, "after_sha256": result_hash,
+                  "before_revision": before_revision, "after_bytes": len(result_data),
                   "changed_sections": [entry["id"] for entry in inventory["sections"] if entry["id"] in changed_ids],
                   "changed": result_data != data}
         if not result["changed"]:
@@ -412,10 +421,13 @@ def apply_patch(packet, patch, dry_run=False):
                 result["unified_diff"] = ""
             return result
         if dry_run:
-            original_text = _read(path)[1]
-            result["unified_diff"] = "".join(difflib.unified_diff(
-                original_text.splitlines(keepends=True), text.splitlines(keepends=True),
-                fromfile="a/" + path.name, tofile="b/" + path.name))
+            # Render from the validated bytes, even when another editor has the file open.
+            lines = difflib.unified_diff(
+                io.StringIO(original_text).readlines(), io.StringIO(text).readlines(),
+                fromfile="a/" + path.name, tofile="b/" + path.name)
+            result["unified_diff"] = "".join(
+                line if line.endswith("\n") else line + "\n\\ No newline at end of file\n"
+                for line in lines)
             return result
         temporary = None
         try:

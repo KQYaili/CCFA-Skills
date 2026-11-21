@@ -27,8 +27,11 @@ def build(root, output, tracked_only=True):
     names = subprocess.check_output(command).decode("utf-8").split("\0")
     head = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "HEAD"],
                           capture_output=True, text=True, encoding="utf-8")
+    branch = subprocess.check_output(["git", "-C", str(root), "branch", "--show-current"],
+                                     text=True, encoding="utf-8").strip()
     source_identity = {
         "commit": head.stdout.strip() if head.returncode == 0 else None,
+        "branch": branch or None,
         "dirty": bool(subprocess.check_output(["git", "-C", str(root), "status", "--porcelain", "--untracked-files=normal"])),
         "file_selection": "tracked" if tracked_only else "tracked-and-untracked",
     }

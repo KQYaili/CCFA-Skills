@@ -31,7 +31,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.directory.parent, BUILD.resolve())
         self.repo = self.directory / "repository 中文"
         self.repo.mkdir()
-        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        subprocess.run(["git", "-c", "init.defaultBranch=fixture-main", "init", "-q", str(self.repo)], check=True)
         subprocess.run(["git", "-C", str(self.repo), "config", "core.autocrlf", "false"], check=True)
         for skill in SKILLS:
             self.put(skill+"/SKILL.md", "# "+skill+"\n")
@@ -134,7 +134,8 @@ class ReleaseTests(unittest.TestCase):
         self.make_release()
         _, manifest = support.load_release(self.source)
         self.assertNotIn("private-notes.md", {e["path"] for e in manifest["files"]})
-        self.assertEqual(manifest["source"], {"commit": None, "dirty": True, "file_selection": "tracked"})
+        self.assertEqual(manifest["source"], {"commit": None, "branch": "fixture-main", "dirty": True,
+                                              "file_selection": "tracked"})
         reports = builder.build(self.repo, self.output, tracked_only=False)
         with zipfile.ZipFile(self.output/reports[0]["file"]) as archive:
             self.assertTrue(any(name.endswith("/private-notes.md") for name in archive.namelist()))
@@ -148,7 +149,13 @@ class ReleaseTests(unittest.TestCase):
         expected = subprocess.check_output(["git", "-C", str(self.repo), "rev-parse", "HEAD"], text=True).strip()
         self.make_release()
         _, manifest = support.load_release(self.source)
-        self.assertEqual(manifest["source"], {"commit": expected, "dirty": False, "file_selection": "tracked"})
+        self.assertEqual(manifest["source"], {"commit": expected, "branch": "fixture-main", "dirty": False,
+                                              "file_selection": "tracked"})
+        subprocess.run(["git", "-C", str(self.repo), "checkout", "-q", "--detach", expected], check=True)
+        self.make_release()
+        _, detached = support.load_release(self.source)
+        self.assertIsNone(detached["source"]["branch"])
+        self.assertEqual(detached["source"]["commit"], expected)
 
     def _interrupt_update(self, fresh=False):
         if not fresh:
@@ -271,7 +278,9 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse((other/support.RECEIPT).exists())
 
     def test_corrupt_file_or_manifest_is_rejected_before_target_creation(self):
-        target = self.source/"ccf-common/SKILL.md"; original=target.read_bytes(); target.write_bytes(b"tampered")
+        target = self.source/"ccf-common/SKILL.md"
+        original = target.read_bytes()
+        target.write_bytes(original.replace(b"ccf-common", b"CCF-common", 1))
         with self.assertRaisesRegex(ValueError, "manifest"): installer.install(self.source, self.target)
         self.assertFalse(self.target.exists()); target.write_bytes(original)
         path = self.source/support.MANIFEST

@@ -53,7 +53,10 @@ class WritingRuntimeTests(unittest.TestCase):
         return json.loads(self.packet.read_text(encoding="utf-8"))
 
     def test_inspect_returns_navigation_not_full_text(self):
+        os.utime(self.paper, (1609459200, 1609459200))
         result = self.cli("inspect", "--manuscript", self.paper)
+        self.assertEqual(result["revision"], {"modified_utc": "2021-01-01T00:00:00.000000+00:00",
+                                             "bytes": len(self.paper.read_bytes())})
         self.assertEqual([s["id"] for s in result["sections"]], ["motivation", "method", "results", "discussion"])
         self.assertTrue(all("text" not in s for s in result["sections"]))
 

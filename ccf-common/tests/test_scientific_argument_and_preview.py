@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -56,23 +57,47 @@ class PatchPreviewTests(unittest.TestCase):
     def test_preview_has_diff_but_no_write(self):
         with tempfile.TemporaryDirectory() as folder:
             paper = Path(folder) / "paper.md"
-            paper.write_text("# Method\nOld claim.\n", encoding="utf-8")
+            original = b"# Method\r\nOld claim."
+            paper.write_bytes(original)
             inventory = patching.inspect_manuscript(paper)
             packet = {"schema_version": 1, "operation": "write",
                       "manuscript": {"path": str(paper), "sha256": inventory["sha256"]},
                       "targets": ["method"], "dependencies": []}
             proposed = {"base_sha256": inventory["sha256"],
-                        "edits": [{"section_id": "method", "before": "Old claim.", "after": "New claim."}]}
+                        "edits": [{"section_id": "method", "before": "Old claim.", "after": "Revised claim."}]}
             preview = patching.apply_patch(packet, proposed, dry_run=True)
             self.assertTrue(preview["changed"])
-            self.assertIn("-Old claim.", preview["unified_diff"])
-            self.assertIn("+New claim.", preview["unified_diff"])
-            self.assertIn("Old claim.", paper.read_text())
+            self.assertIn("-Old claim.\n\\ No newline at end of file\n"
+                          "+Revised claim.\n\\ No newline at end of file\n", preview["unified_diff"])
+            self.assertEqual(paper.read_bytes(), original)
+            self.assertEqual(preview["before_revision"], inventory["revision"])
             applied = patching.apply_patch(packet, proposed)
             self.assertTrue(applied["changed"])
-            self.assertIn("New claim.", paper.read_text())
+            self.assertEqual(paper.read_bytes(), b"# Method\r\nRevised claim.")
+            self.assertEqual(preview["after_bytes"], paper.stat().st_size)
+            self.assertEqual(preview["after_sha256"], applied["after_sha256"])
             with self.assertRaisesRegex(ValueError, "changed"):
                 patching.apply_patch(packet, proposed, dry_run=True)
+
+    def test_same_size_and_timestamp_do_not_authorize_a_stale_patch(self):
+        with tempfile.TemporaryDirectory() as folder:
+            paper = Path(folder) / "paper.md"
+            paper.write_bytes(b"# Method\nRev A.\n")
+            timestamp = (1609459200, 1609459200)
+            os.utime(paper, timestamp)
+            first = patching.inspect_manuscript(paper)
+            packet = {"schema_version": 1, "manuscript": {"path": str(paper), "sha256": first["sha256"]},
+                      "targets": ["method"], "dependencies": []}
+            patch = {"base_sha256": first["sha256"],
+                     "edits": [{"section_id": "method", "before": "Rev", "after": "Version"}]}
+            paper.write_bytes(b"# Method\nRev B.\n")
+            os.utime(paper, timestamp)
+            second = patching.inspect_manuscript(paper)
+            self.assertEqual(first["revision"], second["revision"])
+            for dry_run in (True, False):
+                with self.subTest(dry_run=dry_run), self.assertRaisesRegex(ValueError, "manuscript changed"):
+                    patching.apply_patch(packet, patch, dry_run=dry_run)
+            self.assertEqual(paper.read_bytes(), b"# Method\nRev B.\n")
 
     def test_read_only_review_packet_rejects_preview(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -116,4 +116,4 @@ foreach ($ccfaPath in $ccfaPaths) {
 }
 ```
 
-Interrupted installs retain a pending receipt. Resume with the same package, selection and target; intervening personal edits stop replacement and remain intact. Release builds default to indexed Git paths; development builds can explicitly use `--include-untracked`. The manifest records the source commit and dirty state.
+Interrupted installs retain a pending receipt. Resume with the same package, selection and target; intervening personal edits stop replacement and remain intact. Release builds default to indexed Git paths; development builds can explicitly use `--include-untracked`. New builds record the source commit, branch and dirty state in the manifest. A detached checkout has a `null` branch. Older manifests may omit the branch.
