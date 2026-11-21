@@ -78,6 +78,17 @@ Baseline categories:
 - Human, oracle, random, heuristic, or classical baseline when meaningful.
 - Deployed or default system baseline for systems/HCI/security tasks.
 
+## Baseline Availability and Comparability Gate
+
+For a consequential comparison, refine the `Can run?` field of the baseline matrix **before claiming the comparison is executable**. This is a targeted check, not a demand to download every cited paper or rebuild the entire benchmark:
+
+1. **Locate the artifact:** Identify the exact paper/version, implementation repository and revision, model/checkpoint or data dependency, and any access/licensing restrictions. A repository URL alone does not verify reproducibility.
+2. **Verify the evaluation path:** Identify the actual entrypoint, required inputs/outputs, metric implementation, observation grain, split/exclusions, and whether the claimed method/configuration can be run. Distinguish `verified runnable`, `verified unavailable`, and `not checked`.
+3. **Compare like with like:** Decide what must match (task set, calls, generated candidates, tuning effort, training data, test visibility, inference tokens, hardware, nominal compute); equality of call count is not automatically equality of compute. Preserve unavoidable asymmetries as stated limitations.
+4. **Choose a defensible fallback:** If an important comparator is unavailable, document the reason and either bound the claim, add a meaningful proxy clearly labeled as such, or identify the unavailable comparison as a gap. Do not silently substitute an easier baseline or report an unexecuted comparison as a result.
+
+When a proposed experiment tests a mechanism, name the **plausible competing explanation and the observation on which the two disagree**. Both positive and negative outcomes must be interpretable before the run. Match experimental scope to the exact claim and authorize execution separately; avoid a universal paper-count, ablation-count, or compute threshold.
+
 ## Ablation Logic
 
 Each ablation should test a mechanism:
