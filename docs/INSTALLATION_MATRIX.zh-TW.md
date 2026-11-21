@@ -2,7 +2,7 @@
 
 ## 輕量 release 安裝（推薦）
 
-從 [0.12.1 Release](https://github.com/mikubaka88/CCFA-Skills/releases/tag/v0.12.1) 下載 `ccfa-skills-0.12.1-lean.zip` 與 `SHA256SUMS`。先核對壓縮包 SHA-256（PowerShell 使用 `Get-FileHash -Algorithm SHA256`，macOS/Linux 使用 `shasum -a 256`），再解壓。包內 `tools/install_release.py` 只需 Python 3.10+，不連網、不安裝額外依賴。把下列兩個引號內路徑換成解壓目錄及客戶端實際 skills 根目錄：
+使用由**相同版本安裝器**生成的新 release 包。下載 lean ZIP，檢視可讀檔案清單後解壓。歷史 0.12.1 套件不相容新的可讀版本收據格式，不要混用舊安裝器與新壓縮包。包內 `tools/install_release.py` 只需 Python 3.10+，不連網、不安裝額外依賴。把下列兩個引號內路徑換成解壓目錄及客戶端實際 skills 根目錄：
 
 ```text
 python -B "<lean-dir>/tools/install_release.py" --source "<lean-dir>" --target "<skills-root>" --dry-run
@@ -19,7 +19,7 @@ python -B "<papers-dir>/tools/install_release.py" --source "<papers-dir>" --targ
 
 先安裝同版 lean；也可在安裝 lean 時增加 `--papers "<papers-dir>"`。工具不會自動下載 PDF。保留的真實原文段落繼續用於寫作，遇到必須檢查排版或提取錯誤時，再安裝完整包或讀取獲准使用的原始來源。Git clone 與 `npx skills` 仍取得包含 PDF 的完整原始碼，不屬於輕量下載。
 
-兩個包使用同一發布身份、版本與 manifest 格式，記錄相對路徑、技能清單、大小及 SHA-256。安裝前核驗來源，拒絕路徑穿越與符號連結，並以 `.ccfa-release-receipt.json` 記錄受管理檔案。更新只替換未改動的舊安裝檔案，完全相同的檔案可接管；個人修改會在複製前停止，讓你先合併。額外檔案、偏好與上游已移除的舊檔案皆不自動刪除，也沒有強制覆寫選項。舊手動/npx 安裝若有差異，先核對合併。詳見[更新說明](getting-started/AUTO_UPDATE.md)。
+兩個包使用同一發布身份、版本與 manifest 格式，記錄相對路徑、技能清單、文件大小。安裝前核驗來源，拒絕路徑穿越與符號連結，並以 `.ccfa-release-receipt.json` 記錄受管理檔案。更新只替換未改動的舊安裝檔案，完全相同的檔案可接管；個人修改會在複製前停止，讓你先合併。額外檔案、偏好與上游已移除的舊檔案皆不自動刪除，也沒有強制覆寫選項。舊手動/npx 安裝若有差異，先核對合併。詳見[更新說明](getting-started/AUTO_UPDATE.md)。
 
 可以只安裝部分 skills，但任何子集都必須包含 `ccf-humanization` 和 `ccf-common`。 下表列出任務負責人；還需保留所用模式讀取的相鄰資源：審稿、實驗、腳手架與投稿模式可能讀取 `ccf-paper-writer/references/`，模板模式需要安裝根目錄下相鄰的 `ccf-latex-templates/`，舊版寫作轉換命令依賴 `ccf-paper-to-exemplar/scripts/convert.py`。資源依賴不代表授權執行對應 skill。完整倉庫或外掛保留這些路徑；僅複製 skill 的安裝器還需同步所需資源樹。
 
