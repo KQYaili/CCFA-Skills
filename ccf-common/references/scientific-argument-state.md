@@ -6,14 +6,14 @@ Use only for **ongoing multi-session research manuscripts** where scientific que
 
 ## Ownership and location
 
-- Use the paper's existing project record and \`ccfa.yaml\` claims, experiments, reviews and paths as authoritative. **Do not change the \`ccfa.yaml\` schema.**
-- When explicitly useful and authorized, maintain *one optional* \`scientific-argument.json\` per manuscript, under its **existing project task directory** (for instance \`ccfa-workfiles/ideas/<paper-id>/source/scientific-argument.json\`). Do not create a new root folder merely to hold it.
-- \`ccf-pipeline-orchestrator\` owns authorized cross-stage updates; \`ccf-idea-optimizer\` proposes questions/hypotheses; \`ccf-experiment-designer\` proposes experimental links; \`ccf-integrity-auditor\` verifies evidence; \`ccf-paper-writer\` uses it as framing; \`ccf-paper-reviewer\` challenges it. Except for an explicitly authorized owner, helpers **return proposed changes**, not independent writes.
+- Use the paper's existing project record and `ccfa.yaml` claims, experiments, reviews and paths as authoritative. **Do not change the `ccfa.yaml` schema.**
+- When explicitly useful and authorized, maintain *one optional* `scientific-argument.json` per manuscript, under its **existing project task directory** (for instance `ccfa-workfiles/ideas/<paper-id>/source/scientific-argument.json`). Do not create a new root folder merely to hold it.
+- `ccf-pipeline-orchestrator` owns authorized cross-stage updates; `ccf-idea-optimizer` proposes questions/hypotheses; `ccf-experiment-designer` proposes experimental links; `ccf-integrity-auditor` verifies evidence; `ccf-paper-writer` uses it as framing; `ccf-paper-reviewer` challenges it. Except for an explicitly authorized owner, helpers **return proposed changes**, not independent writes.
 - Preserve true evidence sources and records at their original paths. Evidence references are **pointers** (commit, table, record ID, exact passage), not pasted result tables or confirmation of inspection. The JSON file must never be taken as an empirical source merely because it states a claim.
 
 ## Minimal schema
 
-\`\`\`json
+```json
 {
   "record_type": "ccfa-scientific-argument",
   "schema_version": 1,
@@ -39,33 +39,33 @@ Use only for **ongoing multi-session research manuscripts** where scientific que
     }
   ]
 }
-\`\`\`
+```
 
-Empty hypothesis/paragraph arrays are valid. Unfilled fields are explicitly **unassessed**, not inferred. Hypothesis \`evidence_stage\` is one of \`unassessed / exploratory / confirmatory / theoretical\`: this records the *reported study category*, not proof that a result validates the hypothesis. The reference needs external verification; planned evidence is not observed evidence. Negative and mixed outcomes must remain usable.
+Empty hypothesis/paragraph arrays are valid. Unfilled fields are explicitly **unassessed**, not inferred. Hypothesis `evidence_stage` is one of `unassessed / exploratory / confirmatory / theoretical`: this records the *reported study category*, not proof that a result validates the hypothesis. The reference needs external verification; planned evidence is not observed evidence. Negative and mixed outcomes must remain usable.
 
-For verified paragraphs, provide a current **full-file SHA-256** in \`manuscript_sha256\` plus \`verification: {"scope": "<checked scope>", "receipt": "<actual audit/report anchor>"}\`. This is a **versioned receipt for stated coverage**, not a global proof of correctness. Validate against \`--manuscript\` before reusing a previous verified status; an unchanged SHA supports version identity, not the sufficiency of the audit. Editing the paper makes prior receipts stale until rechecked. Freezing a paragraph means "do not casually rewrite", **not** "ignore factual errors".
+For verified paragraphs, provide a current **full-file SHA-256** in `manuscript_sha256` plus `verification: {"scope": "<checked scope>", "receipt": "<actual audit/report anchor>"}`. This is a **versioned receipt for stated coverage**, not a global proof of correctness. Validate against `--manuscript` before reusing a previous verified status; an unchanged SHA supports version identity, not the sufficiency of the audit. Editing the paper makes prior receipts stale until rechecked. Freezing a paragraph means "do not casually rewrite", **not** "ignore factual errors".
 
 ## Paragraph lifecycle
 
-- \`todo\`: not written; no claim of missing evidence unless checked.
-- \`draft\`: working prose; ordinary authorized revisions are permitted.
-- \`review\`: under review; reviewer does not gain edit rights.
-- \`frozen\`: preserve style and content by default; scientific or numerical faults **must still be reported**, with the relevant source and repair scope.
-- \`verified\`: checked at the declared scope against the declared exact manuscript version; still subject to superseding evidence, broader review and current venue rules.
+- `todo`: not written; no claim of missing evidence unless checked.
+- `draft`: working prose; ordinary authorized revisions are permitted.
+- `review`: under review; reviewer does not gain edit rights.
+- `frozen`: preserve style and content by default; scientific or numerical faults **must still be reported**, with the relevant source and repair scope.
+- `verified`: checked at the declared scope against the declared exact manuscript version; still subject to superseding evidence, broader review and current venue rules.
 
 Status is a workflow hint; it does not override the user's current instructions, human editorial choice, the manuscript itself, or scientific integrity.
 
 ## Lightweight helper (no network / no manuscript editing)
 
-The script \`ccf-common/scripts/scientific_argument.py\` supports:
+The script `ccf-common/scripts/scientific_argument.py` supports:
 
-\`\`\`bash
+```bash
 python ccf-common/scripts/scientific_argument.py init --file ccfa-workfiles/ideas/my-paper/source/scientific-argument.json --paper-id my-paper
 python ccf-common/scripts/scientific_argument.py validate --file ccfa-workfiles/ideas/my-paper/source/scientific-argument.json --manuscript manuscript/main.tex
 python ccf-common/scripts/scientific_argument.py brief --file ccfa-workfiles/ideas/my-paper/source/scientific-argument.json
-\`\`\`
+```
 
-\`init\` refuses to overwrite; the parent directory must already exist. \`validate\` checks **structure and version-staleness**, not whether scientific claims are true. \`brief\` prints a small \`{"message": ..., "throughline": ...}\` object compatible with the writer's existing \`--brief\` input; it refuses to export a blank question/throughline. Save the output as the existing task's brief only when needed, under an authorized path. The original hypotheses and evidence refs remain in the argument file, not duplicated into a new "facts" database.
+`init` refuses to overwrite; the parent directory must already exist. `validate` checks **structure and version-staleness**, not whether scientific claims are true. `brief` prints a small `{"message": ..., "throughline": ...}` object compatible with the writer's existing `--brief` input; it refuses to export a blank question/throughline. Save the output as the existing task's brief only when needed, under an authorized path. The original hypotheses and evidence refs remain in the argument file, not duplicated into a new "facts" database.
 
 ## Handoff discipline
 
