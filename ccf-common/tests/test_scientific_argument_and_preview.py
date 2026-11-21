@@ -56,7 +56,7 @@ class ArgumentStateTests(unittest.TestCase):
 class PatchPreviewTests(unittest.TestCase):
     def test_preview_has_diff_but_no_write(self):
         with tempfile.TemporaryDirectory() as folder:
-            paper = Path(folder) / "paper.md"
+            paper = Path(folder).resolve() / "paper.md"
             original = b"# Method\r\nOld claim."
             paper.write_bytes(original)
             inventory = patching.inspect_manuscript(paper)
@@ -81,7 +81,7 @@ class PatchPreviewTests(unittest.TestCase):
 
     def test_same_size_and_timestamp_do_not_authorize_a_stale_patch(self):
         with tempfile.TemporaryDirectory() as folder:
-            paper = Path(folder) / "paper.md"
+            paper = Path(folder).resolve() / "paper.md"
             paper.write_bytes(b"# Method\nRev A.\n")
             timestamp = (1609459200, 1609459200)
             os.utime(paper, timestamp)
@@ -101,7 +101,7 @@ class PatchPreviewTests(unittest.TestCase):
 
     def test_read_only_review_packet_rejects_preview(self):
         with tempfile.TemporaryDirectory() as folder:
-            paper = Path(folder) / "paper.md"
+            paper = Path(folder).resolve() / "paper.md"
             paper.write_text("# Methods\nNo edit.\n", encoding="utf-8")
             inventory = patching.inspect_manuscript(paper)
             packet = {"schema_version": 1, "operation": "review",
