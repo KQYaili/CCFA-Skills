@@ -24,7 +24,9 @@ Use Common's [task modes](../ccf-common/references/task-modes.md): exploratory f
 
 For a request to understand one named paper, use the supplied version and the [single-paper reading guide](references/single-paper-reading.md). An explanation can start directly from the relevant equation or result.
 
-Read [search-and-scoring.md](references/search-and-scoring.md) for source roles, query/reuse strategy, taxonomy, relevant scoring anchors and standalone search guidance. Ground substantive claims in inspected original papers or primary artifacts. Indexes and stable landing pages establish identity; snippets, citation counts, institutional prestige and awards do not establish scientific findings. Include relevant technical reports, conference/journal papers and arXiv originals according to their content, version and status.
+Read [search-and-scoring.md](references/search-and-scoring.md)On an idea review handoff that specifically asks whether a novelty claim is anticipated, supply the four-axis closest-work evidence requested by [novelty-collision-audit.md](../ccf-idea-reviewer/references/novelty-collision-audit.md). Read the relevant source methods, identify source version and the inspected section; abstract-only overlap stays provisional. The reviewer owns the verdict, not the searcher.
+
+ for source roles, query/reuse strategy, taxonomy, relevant scoring anchors and standalone search guidance. Ground substantive claims in inspected original papers or primary artifacts. Indexes and stable landing pages establish identity; snippets, citation counts, institutional prestige and awards do not establish scientific findings. Include relevant technical reports, conference/journal papers and arXiv originals according to their content, version and status.
 
 Grade every candidate reference with the five-verdict vocabulary in [citation-verdict-protocol.md](references/citation-verdict-protocol.md) (VERIFIED / MINOR / MAJOR / UNVERIFIABLE / PAYWALL): unverifiable candidates stay out of the report, and on confirming an invented citation, cascade-recheck every judgment that depended on it.
 
