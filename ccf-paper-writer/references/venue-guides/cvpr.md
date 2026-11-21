@@ -17,6 +17,8 @@ For a new 2027 project, copy the full `ccf-latex-templates/CVPR/2027/` kit, incl
 
 The review limit is eight pages of main content including figures and tables. Inspect where the main text ends in the rendered PDF and use the exact-year guidelines for permitted additional material and anonymity. Recheck the instructions for the actual track and stage at submission time. [CVPR 2027 author guidelines](https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines)
 
+The [rebuttal template](../../../ccf-latex-templates/CVPR/2027/rebuttal.tex) specifies one page. The unedited v1 example rendered as one US Letter page with pdfLaTeX and BibTeX, and as two with Tectonic, which placed the sample reference on page two. Check the final PDF with the toolchain used for submission.
+
 ## Usage Boundary
 
 - Use this file for LaTeX, page limit, anonymity, template, camera-ready, rebuttal-template, and venue-format details.
