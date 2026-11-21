@@ -3,42 +3,40 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
-import re
 import sys
 import tempfile
 
-from release_support import RECEIPT, digest, is_paper_pdf, load_release, no_links, read_json, relative_path, select_files
+from release_support import RECEIPT, file_version, same_bytes, is_paper_pdf, load_release, no_links, read_json, relative_path, select_files
 
 
-def _hash(value):
-    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+def _readable(value):
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _receipt(target):
     path = no_links(target / RECEIPT)
     if not path.exists():
-        return {"schema_version": 1, "owner": "ccfa-release-installer", "files": {}, "skills": {}}
+        return {"schema_version": 2, "owner": "ccfa-release-installer", "files": {}, "skills": {}}
     value = read_json(path)
-    if not isinstance(value, dict) or value.get("owner") != "ccfa-release-installer" or value.get("schema_version") != 1:
+    if not isinstance(value, dict) or value.get("owner") != "ccfa-release-installer" or value.get("schema_version") != 2:
         raise ValueError("Existing receipt is not owned by this installer")
     if not isinstance(value.get("files"), dict) or not isinstance(value.get("skills"), dict):
         raise ValueError("Invalid installation receipt")
     for name, entry in value["files"].items():
         relative_path(name)
-        if not isinstance(entry, dict) or not _hash(entry.get("sha256")):
+        if not isinstance(entry, dict) or not _readable(entry.get("file_version")):
             raise ValueError("Invalid managed-file receipt")
     pending = value.get("pending")
     if pending is not None:
-        if not isinstance(pending, dict) or not _hash(pending.get("operation")) or not isinstance(pending.get("before"), dict):
+        if not isinstance(pending, dict) or not _readable(pending.get("operation")) or not isinstance(pending.get("before"), dict):
             raise ValueError("Invalid pending installation receipt")
         for name, previous in pending["before"].items():
             relative_path(name)
-            if previous is not None and not _hash(previous):
-                raise ValueError("Invalid pending destination hash")
+            if previous is not None and not _readable(previous):
+                raise ValueError("Invalid pending destination version")
     return value
 
 
@@ -57,8 +55,8 @@ def _write_receipt(target, value):
 def _operation(manifest, skills, entries):
     # Identify content and selection, independent of the extracted source location.
     value = {"release_id": manifest["release_id"], "profile": manifest["profile"], "skills": skills,
-             "files": sorted((entry["path"], entry["sha256"]) for _, entry in entries)}
-    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+             "files": sorted((entry["path"], entry["bytes"]) for _, entry in entries)}
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2)
 
 
 def install(source, target, requested=None, papers=None, dry_run=False):
@@ -97,13 +95,14 @@ def install(source, target, requested=None, papers=None, dry_run=False):
         path = no_links(target / entry["path"])
         if path.exists() and not path.is_file():
             raise ValueError("An installation file conflicts with a directory: "+entry["path"])
-        current = digest(path) if path.exists() else None
+        current = file_version(path) if path.exists() else None
         observed[entry["path"]] = current
-        if pending is not None and current not in (pending["before"][entry["path"]], entry["sha256"]):
+        identical = path.exists() and same_bytes(path, no_links(origin / entry["path"]))
+        if pending is not None and current != pending["before"][entry["path"]] and not identical:
             raise ValueError("Preserving a change made after an interrupted update; reconcile before retrying: "+entry["path"])
-        if current == entry["sha256"]:
+        if identical:
             unchanged += 1
-        elif pending is None and current is not None and old["files"].get(entry["path"], {}).get("sha256") != current:
+        elif pending is None and current is not None and old["files"].get(entry["path"], {}).get("file_version") != current:
             raise ValueError("Preserving a personal or unmanaged edit; reconcile before updating: "+entry["path"])
         else:
             changes.append((origin, entry, path, current))
@@ -126,23 +125,24 @@ def install(source, target, requested=None, papers=None, dry_run=False):
             raise ValueError("Installation receipt changed; inspect and retry")
         for origin, entry, path, previous in changes:
             no_links(path)
-            if (digest(path) if path.exists() else None) != previous:
+            if (file_version(path) if path.exists() else None) != previous:
                 raise ValueError("Target changed during preparation: "+entry["path"])
             path.parent.mkdir(parents=True, exist_ok=True)
             fd, name = tempfile.mkstemp(prefix=".ccfa-install-", suffix=".tmp", dir=path.parent)
             temporary = Path(name)
             staged.append((temporary, path))
-            measured = hashlib.sha256()
             size = 0
-            with os.fdopen(fd, "wb") as out, no_links(origin / entry["path"]).open("rb") as inp:
+            original = no_links(origin / entry["path"])
+            with os.fdopen(fd, "wb") as out, original.open("rb") as inp:
                 for block in iter(lambda: inp.read(1024 * 1024), b""):
-                    out.write(block); measured.update(block); size += len(block)
-            if measured.hexdigest() != entry["sha256"] or size != entry["bytes"]:
+                    out.write(block)
+                    size += len(block)
+            if size != entry["bytes"] or not same_bytes(temporary, original):
                 raise ValueError("Source changed during copy: "+entry["path"])
         # Recheck every destination before committing any replacement.
         for _, entry in entries:
             path = no_links(target / entry["path"])
-            if (digest(path) if path.exists() else None) != observed[entry["path"]]:
+            if (file_version(path) if path.exists() else None) != observed[entry["path"]]:
                 raise ValueError("Target changed during staging: "+entry["path"])
         journal = {**old, "pending": pending or {"operation": operation, "before": observed}}
         _write_receipt(target, journal)
@@ -150,7 +150,7 @@ def install(source, target, requested=None, papers=None, dry_run=False):
         # only the original or expected new bytes, never intervening user edits.
         for temporary, path in staged:
             rel = path.relative_to(target).as_posix()
-            if (digest(no_links(path)) if path.exists() else None) != observed[rel]:
+            if (file_version(no_links(path)) if path.exists() else None) != observed[rel]:
                 raise ValueError("Target changed during commit: "+rel)
             os.replace(temporary, path)
         if _receipt(target) != journal:
@@ -158,7 +158,7 @@ def install(source, target, requested=None, papers=None, dry_run=False):
         receipt = {**old, "version": manifest["version"], "files": dict(old["files"]), "skills": dict(old["skills"])}
         receipt.pop("pending", None)
         for _, entry in entries:
-            receipt["files"][entry["path"]] = {"sha256": entry["sha256"], "version": manifest["version"]}
+            receipt["files"][entry["path"]] = {"file_version": file_version(target / entry["path"]), "version": manifest["version"]}
         for skill in skills:
             receipt["skills"][skill] = manifest["version"]
         _write_receipt(target, receipt)
