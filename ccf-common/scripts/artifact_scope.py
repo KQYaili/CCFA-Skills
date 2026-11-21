@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-import hashlib
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path, PureWindowsPath
@@ -68,23 +68,16 @@ def plain_path(root: Path, name: str) -> Path:
     return path
 
 
-def fingerprint(path: Path) -> dict:
+def file_record(path: Path) -> dict:
     info = path.stat(follow_symlinks=False)
     if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
         raise ValueError("only regular, unshared files can be managed")
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    after = path.stat(follow_symlinks=False)
-    if (info.st_ino, info.st_size, info.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
-        raise ValueError("file changed while it was being inspected")
-    return {"sha256": digest.hexdigest(), "size": info.st_size,
+    return {"size": info.st_size, "modified": datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds"),
             "device": info.st_dev, "inode": info.st_ino, "mtime_ns": info.st_mtime_ns}
 
 
 def validate_inventory(value: object) -> None:
-    if not isinstance(value, dict) or set(value) != {"version", "files", "pending"} or type(value["version"]) is not int or value["version"] != 1:
+    if not isinstance(value, dict) or set(value) != {"version", "files", "pending"} or type(value["version"]) is not int or value["version"] != 2:
         raise ValueError("invalid file lifecycle record")
     if not isinstance(value["files"], dict) or not isinstance(value["pending"], list):
         raise ValueError("invalid file lifecycle entries")
@@ -95,13 +88,13 @@ def validate_inventory(value: object) -> None:
     if len(set(value["pending"])) != len(value["pending"]):
         raise ValueError("duplicate pending output")
     for name, item in value["files"].items():
-        if not isinstance(name, str) or not isinstance(item, dict) or set(item) != {"fingerprint", "released", "reason"}:
+        if not isinstance(name, str) or not isinstance(item, dict) or set(item) != {"file_record", "released", "reason"}:
             raise ValueError("invalid managed output")
-        fp = item["fingerprint"]
-        if not isinstance(fp, dict) or set(fp) != {"sha256", "size", "device", "inode", "mtime_ns"}:
-            raise ValueError("invalid file fingerprint")
-        if not isinstance(fp["sha256"], str) or len(fp["sha256"]) != 64 or any(c not in "0123456789abcdef" for c in fp["sha256"]):
-            raise ValueError("invalid content digest")
+        fp = item["file_record"]
+        if not isinstance(fp, dict) or set(fp) != {"size", "modified", "device", "inode", "mtime_ns"}:
+            raise ValueError("invalid readable file metadata")
+        if not isinstance(fp["modified"], str) or not fp["modified"]:
+            raise ValueError("missing modification time")
         if any(type(fp[k]) is not int or fp[k] < 0 for k in ("size", "device", "inode", "mtime_ns")):
             raise ValueError("invalid file metadata")
         if type(item["released"]) is not bool or not isinstance(item["reason"], str):
@@ -153,14 +146,14 @@ class Scope:
         self.record = plain_path(self.root, record)
         self.lock = self.record.with_name(self.record.name + ".lock")
         self.data = {}
-        self.inventory = {"version": 1, "files": {}, "pending": []}
+        self.inventory = {"version": 2, "files": {}, "pending": []}
         self._record_bytes = None
         self._readonly = False
 
     def read_record(self, missing_ok=False):
         plain_path(self.root, self.record.relative_to(self.root).as_posix())
         self.data = {}
-        self.inventory = {"version": 1, "files": {}, "pending": []}
+        self.inventory = {"version": 2, "files": {}, "pending": []}
         if not self.record.exists():
             if not missing_ok:
                 raise ValueError("no artifact record exists")
@@ -172,7 +165,7 @@ class Scope:
         self.data = json.loads(self._record_bytes.decode("utf-8-sig"), object_pairs_hook=unique_object, parse_constant=reject_constant)
         if not isinstance(self.data, dict):
             raise ValueError("record must be a JSON object")
-        self.inventory = self.data.get(KEY, {"version": 1, "files": {}, "pending": []})
+        self.inventory = self.data.get(KEY, {"version": 2, "files": {}, "pending": []})
         validate_inventory(self.inventory)
 
     def check_record_unchanged(self):
@@ -248,7 +241,7 @@ class Scope:
             prior = self.inventory["files"].get(name)
             if not path.exists():
                 owned.append(name)
-            elif prior and fingerprint(path) == prior["fingerprint"]:
+            elif prior and file_record(path) == prior["file_record"]:
                 owned.append(name)
             else:
                 # Declared temporary outputs may never overwrite unowned inputs.
@@ -265,7 +258,7 @@ class Scope:
         for name in owned:
             path = self.output(name)
             if path.exists():
-                self.inventory["files"][name] = {"fingerprint": fingerprint(path), "released": False, "reason": ""}
+                self.inventory["files"][name] = {"file_record": file_record(path), "released": False, "reason": ""}
             else:
                 self.inventory["files"].pop(name, None)
         self.inventory["pending"] = []
@@ -279,7 +272,7 @@ class Scope:
             path = self.output(raw)
             name = path.relative_to(self.root).as_posix()
             entry = self.inventory["files"].get(name)
-            if not entry or not path.exists() or fingerprint(path) != entry["fingerprint"]:
+            if not entry or not path.exists() or file_record(path) != entry["file_record"]:
                 raise ValueError(f"output is unowned, missing, or changed: {name}")
             entry.update(released=True, reason=reason)
         self.save()
@@ -300,10 +293,10 @@ class Scope:
                 if apply:
                     del self.inventory["files"][name]
                 continue
-            if fingerprint(path) != entry["fingerprint"]:
+            if file_record(path) != entry["file_record"]:
                 rows.append({"path": name, "action": "preserve_changed"})
                 continue
-            rows.append({"path": name, "action": "delete" if apply else "would_delete", "bytes": entry["fingerprint"]["size"]})
+            rows.append({"path": name, "action": "delete" if apply else "would_delete", "bytes": entry["file_record"]["size"]})
             if apply:
                 # One checked file at a time; no recursive directory removal.
                 path.unlink()
@@ -322,7 +315,7 @@ class Scope:
 
     def clear_stale_lock(self):
         plain_path(self.root, self.lock.relative_to(self.root).as_posix())
-        fingerprint(self.lock)
+        file_record(self.lock)
         try:
             pid = int(self.lock.read_text(encoding="ascii"))
         except (ValueError, UnicodeError):
