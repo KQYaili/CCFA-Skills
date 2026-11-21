@@ -9,7 +9,6 @@ the supplied scientific brief are never shortened to satisfy it.
 from __future__ import annotations
 
 import copy
-import hashlib
 import json
 from pathlib import Path
 import re
@@ -58,7 +57,8 @@ def _snapshot(path):
         text = raw.decode("utf-8-sig", errors="strict")
     except (OSError, UnicodeError) as exc:
         raise WritingContextError(f"Cannot read UTF-8 file {path}: {type(exc).__name__}") from exc
-    return text, hashlib.sha256(raw).hexdigest()
+    from manuscript_patch import _file_version
+    return text, _file_version(path)
 
 
 def _brief(value):
@@ -108,7 +108,7 @@ def _section(item, text):
     if item.get("text") != actual:
         raise WritingContextError(f"Section {key} text does not match its inspected source span")
     return {"id": key, "heading": heading, **_location(text, start, end),
-            "sha256": hashlib.sha256(actual.encode("utf-8")).hexdigest(), "text": actual}
+            "section_text": actual, "text": actual}
 
 
 def _inspected(path):
@@ -118,15 +118,15 @@ def _inspected(path):
         raise WritingContextError(f"Cannot inspect manuscript {path}: {exc}") from exc
     if not isinstance(inspected, dict) or not isinstance(inspected.get("sections"), list):
         raise WritingContextError("Manuscript inspection did not return a section inventory")
-    text, digest = _snapshot(path)
-    if inspected.get("sha256") != digest:
+    text, version = _snapshot(path)
+    if inspected.get("version") != version:
         raise WritingContextError("Manuscript changed during inspection; read the current source again")
     sections = [_section(item, text) for item in inspected["sections"]]
     if len({s["id"] for s in sections}) != len(sections):
         raise WritingContextError("Manuscript inspection returned duplicate section IDs")
     if any(b["start"] < a["end"] for a, b in zip(sections, sections[1:])):
         raise WritingContextError("Manuscript inspection returned overlapping or unordered sections")
-    return text, digest, sections
+    return text, version, sections
 
 
 def _fragment(identity, text, start, end, *, limit, tail=False, **extra):
@@ -160,7 +160,7 @@ def _source(entry, snapshots):
     path = _path(entry["path"])
     if path not in snapshots:
         snapshots[path] = _snapshot(path)
-    text, digest = snapshots[path]
+    text, version = snapshots[path]
     lines = text.splitlines(keepends=True)
     if not lines:
         raise WritingContextError(f"Source {identity['id']} contains no text lines")
@@ -170,7 +170,7 @@ def _source(entry, snapshots):
         raise WritingContextError(f"Source {identity['id']} line bounds must lie inside its actual file")
     start = sum(len(line) for line in lines[:start_line-1])
     end = start + sum(len(line) for line in lines[start_line-1:end_line])
-    identity.update(path=str(path), sha256=digest)
+    identity.update(path=str(path), version=version)
     return identity, text, start, end
 
 
@@ -187,7 +187,7 @@ def prepare_context(manuscript, targets, brief=None, sources=None, max_chars=Non
     these optional excerpts further, never targets or the scientific brief.
     """
     path = _path(manuscript)
-    text, digest, sections = _inspected(path)
+    text, version, sections = _inspected(path)
     target_ids = _ids(targets, "targets")
     indexed = {item["id"]: item for item in sections}
     missing = set(target_ids) - set(indexed)
@@ -223,7 +223,7 @@ def prepare_context(manuscript, targets, brief=None, sources=None, max_chars=Non
         for edge, limit, tail in edges:
             relevant = [item for item in adjacency if len(edges) == 1 or
                         item["side"] == ("previous" if tail else "next")]
-            state = _fragment({"id": key, "heading": other["heading"], "path": str(path), "sha256": digest},
+            state = _fragment({"id": key, "heading": other["heading"], "path": str(path), "version": version},
                               text, other["start"], other["end"], limit=limit, tail=tail,
                               edge=edge, adjacent_to=relevant)
             optional.append(state)
@@ -269,7 +269,7 @@ def prepare_context(manuscript, targets, brief=None, sources=None, max_chars=Non
             _resize(state, low, "context_budget")
         if _json_size(context) > max_chars:
             raise WritingContextError("max_chars cannot hold complete targets, the scientific brief and explicit read-back locations; increase it or narrow the targets")
-    return {"schema_version": 1, "manuscript": {"path": str(path), "sha256": digest},
+    return {"schema_version": 1, "manuscript": {"path": str(path), "version": version},
             "targets": target_ids, "sections": [{key: value for key, value in item.items() if key != "text"} for item in sections],
             "context": context, "dependencies": dependencies,
             "budget": {"measure": "json_context_characters", "max_chars": max_chars, "used_chars": _json_size(context)}}
@@ -277,27 +277,27 @@ def prepare_context(manuscript, targets, brief=None, sources=None, max_chars=Non
 
 def _current(identity, snapshots):
     path_value = identity.get("path")
-    expected = identity.get("sha256")
-    if not isinstance(path_value, str) or not path_value or not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
-        return {"status": "unknown", "current_sha256": None, "reason": "Missing or invalid stored source identity"}
+    expected = identity.get("version")
+    if not isinstance(path_value, str) or not path_value or not isinstance(expected, str) or not expected:
+        return {"status": "unknown", "current_version": None, "reason": "Missing readable source revision"}
     try:
         path = _path(path_value)
     except (WritingContextError, OSError, RuntimeError) as exc:
-        return {"status": "unknown", "current_sha256": None, "reason": str(exc)}
+        return {"status": "unknown", "current_version": None, "reason": str(exc)}
     if path not in snapshots:
         try:
-            raw = path.read_bytes()
-            raw.decode("utf-8-sig", errors="strict")
-            snapshots[path] = {"current_sha256": hashlib.sha256(raw).hexdigest()}
+            from manuscript_patch import _file_version
+            path.read_bytes().decode("utf-8-sig", errors="strict")
+            snapshots[path] = {"current_version": _file_version(path)}
         except FileNotFoundError:
-            snapshots[path] = {"status": "missing", "current_sha256": None}
+            snapshots[path] = {"status": "missing", "current_version": None}
         except (OSError, UnicodeError) as exc:
-            snapshots[path] = {"status": "unreadable", "current_sha256": None, "reason": type(exc).__name__}
+            snapshots[path] = {"status": "unreadable", "current_version": None, "reason": type(exc).__name__}
     current = snapshots[path]
     if "status" in current:
         return dict(current)
-    digest = current["current_sha256"]
-    return {"status": "unchanged" if digest == expected else "changed", "current_sha256": digest}
+    version = current["current_version"]
+    return {"status": "unchanged" if version == expected else "changed", "current_version": version}
 
 
 def assess_impact(packet):
@@ -318,8 +318,8 @@ def assess_impact(packet):
     if current_manuscript["status"] == "changed":
         try:
             _, _, latest = _inspected(_path(manuscript["path"]))
-            old = {item["id"]: item.get("sha256") for item in sections}
-            new = {item["id"]: item["sha256"] for item in latest}
+            old = {item["id"]: item.get("section_text") for item in sections}
+            new = {item["id"]: item["section_text"] for item in latest}
             changed_sections = [key for key in old.keys() & new.keys() if old[key] != new[key]]
             removed_sections = sorted(old.keys()-new.keys())
             added_sections = sorted(new.keys()-old.keys())
@@ -333,7 +333,7 @@ def assess_impact(packet):
         current = _current(dependency, snapshots)
         if current["status"] != "unchanged":
             changed_sources.append({"id": dependency["id"], "path": dependency.get("path"), "kind": dependency.get("kind"),
-                                    "expected_sha256": dependency.get("sha256"), "used_by": users, **current})
+                                    "expected_version": dependency.get("version"), "used_by": users, **current})
             affected.update(users)
             if not users:
                 unknown_scope.append(dependency["id"])
