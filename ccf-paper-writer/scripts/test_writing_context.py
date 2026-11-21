@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import copy
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -63,7 +62,7 @@ class WritingContextTests(unittest.TestCase):
         source = packet["context"]["sources"][0]
         self.assertEqual(source["text"], "The selected explanation states its operation.\n它随后解释同一对象的依赖关系。\n")
         self.assertEqual((source["start_line"], source["end_line"]), (3, 4))
-        self.assertEqual(source["sha256"], hashlib.sha256(self.exemplar.read_bytes()).hexdigest())
+        self.assertEqual(source["version"], writing_context._snapshot(self.exemplar)[1])
         self.assertNotIn("第一行不是", source["text"])
         self.assertNotIn("Unused tail", source["text"])
 
@@ -169,7 +168,7 @@ class WritingContextTests(unittest.TestCase):
         with patch.object(Path, "read_bytes", tracked_read):
             packet = context.prepare_context(self.manuscript, ["method"], sources=declarations)
         self.assertEqual(reads.count(self.exemplar), 1)
-        self.assertEqual(packet["dependencies"][0]["sha256"], packet["dependencies"][1]["sha256"])
+        self.assertEqual(packet["dependencies"][0]["version"], packet["dependencies"][1]["version"])
         self.exemplar.write_text("Changed actual source.\n", encoding="utf-8")
         reads.clear()
         with patch.object(Path, "read_bytes", tracked_read):
@@ -225,7 +224,7 @@ class WritingContextTests(unittest.TestCase):
 
     def test_unknown_dependency_identity_is_explicit(self):
         packet = self.packet()
-        packet["dependencies"][0].pop("sha256")
+        packet["dependencies"][0].pop("version")
         impact = context.assess_impact(packet)
         self.assertEqual(impact["changed_sources"][0]["status"], "unknown")
         self.assertEqual(impact["affected_targets"], ["method"])
@@ -291,7 +290,7 @@ class WritingContextTests(unittest.TestCase):
 
     def test_prepared_packet_is_compatible_with_the_scoped_patch_api(self):
         packet = self.packet()
-        result = manuscript_patch.apply_patch(packet, {"base_sha256": packet["manuscript"]["sha256"], "edits": [{"section_id": "method", "before": "对象身份和观察时间", "after": "对象身份及其观察时间"}]})
+        result = manuscript_patch.apply_patch(packet, {"base_version": packet["manuscript"]["version"], "edits": [{"section_id": "method", "before": "对象身份和观察时间", "after": "对象身份及其观察时间"}]})
         self.assertTrue(result["changed"])
         self.assertEqual(result["changed_sections"], ["method"])
         self.assertEqual(context.assess_impact(packet)["changed_sections"], ["method"])
