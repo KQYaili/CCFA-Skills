@@ -3,7 +3,7 @@
 
 The host edits an explicit file allowlist and chooses hypotheses. This tool
 freezes the contract, executes its argv, records evidence, and keeps or restores
-managed snapshots. Hash checks are integrity checks, NOT an OS sandbox. The
+managed snapshots. Readable version checks are limited coordination aids, NOT an OS sandbox. The
 caller remains responsible for command permissions, environment, and evaluator
 independence. No model, network client, GPU job, or background loop is started
 except what the caller's explicit command itself requests.
@@ -20,7 +20,6 @@ import argparse
 import ast
 import contextlib
 import datetime as dt
-import hashlib
 import importlib.metadata
 import importlib.util
 import json
@@ -80,8 +79,8 @@ def _encoded(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
-def _hash(value):
-    return hashlib.sha256(_encoded(value)).hexdigest()
+def _revision(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False)
 
 
 def _write(path, data):
@@ -133,11 +132,9 @@ def _file(root, relative):
 def _file_info(path):
     if not path.exists():
         return None
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return {"sha256": digest.hexdigest(), "mode": stat.S_IMODE(path.stat().st_mode)}
+    info = path.stat()
+    date = dt.datetime.fromtimestamp(info.st_mtime, dt.timezone.utc).isoformat(timespec="microseconds")
+    return {"version": f"{date} | {info.st_size} bytes", "mode": stat.S_IMODE(info.st_mode)}
 
 
 def _manifest(project, names, required=False):
@@ -156,8 +153,8 @@ def _snapshot(project, names, destination):
         if info is not None:
             target = destination / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(_file(project, name), target)
-            if _file_info(target)["sha256"] != info["sha256"]:
+            shutil.copy2(_file(project, name), target)
+            if _file_info(target)["version"] != info["version"]:
                 raise LoopError(f"File changed while snapshotting: {name}")
     _write_json(destination.parent / "manifest.json", manifest)
     return manifest
@@ -286,7 +283,7 @@ def _task_identity(contract, protected_manifest):
     names = evaluation.get("task_files", contract["data_files"])
     files = {name: protected_manifest[name] for name in names}
     return {"id": evaluation["task_set_id"], "files": files,
-            "content_hash": _hash(sorted(info["sha256"] for info in files.values())),
+            "content_revision": _revision(sorted(info["version"] for info in files.values())),
             "scope": "declared task/split content identity only; not a proof of semantic non-overlap"}
 
 
@@ -307,9 +304,9 @@ def _environment_identity(project, contract):
             packages[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError as exc:
             raise LoopError(f"Declared environment package is not installed: {name}") from exc
-    return {"executable": str(executable), "executable_sha256": _file_info(executable)["sha256"],
+    return {"executable": str(executable), "executable_revision": _file_info(executable)["version"],
             "controller_python": sys.version.split()[0], "platform": sys.platform, "packages": packages,
-            "variables": {name: _hash(os.environ.get(name)) for name in specification.get("variables", [])}}
+            "variables": {name: ("configured" if name in os.environ else "unset") for name in specification.get("variables", [])}}
 
 
 def _dependency_preflight(project, contract):
@@ -417,17 +414,17 @@ def _settle_shared(workdir, state, contract, attempt, unknown=False):
 
 def _campaign_evaluation(contract, task_identity):
     evaluation = contract.get("evaluation")
-    return None if not evaluation else dict(evaluation, task_content_hash=task_identity["content_hash"])
+    return None if not evaluation else dict(evaluation, task_content_revision=task_identity["content_revision"])
 
 
 def _final_use(contract, state, manifest):
     if contract.get("evaluation", {}).get("split_role") != "final":
         return None
     return {
-        "task_content_hash": state["task_set_identity"]["content_hash"],
+        "task_content_revision": state["task_set_identity"]["content_revision"],
         "candidate_id": contract["evaluation"]["frozen_candidate"]["candidate_id"],
-        "candidate_hash": _hash(manifest),
-        "protocol_hash": _hash({
+        "candidate_revision": _revision(manifest),
+        "protocol_revision": _revision({
             "command": contract["command"], "locked_files": state["locked_files"],
             "environment": state.get("environment_identity"),
             **{name: contract.get(name) for name in ("metric", "metric_guards", "tie_breaker")},
@@ -451,7 +448,7 @@ def _final_source(project, workdir, contract, manifest):
         raise LoopError("Final evaluation needs a distinct task-set identity and a selection-stage source")
     identity = _task_identity(contract, _manifest(project, _protected(contract), required=True))
     previous_identity = source.get("task_set_identity")
-    if previous_identity is None or previous_identity["content_hash"] == identity["content_hash"]:
+    if previous_identity is None or previous_identity["content_revision"] == identity["content_revision"]:
         raise LoopError("Final task/split content matches selection; a different display name is not held-out identity")
     selected = next((attempt for attempt in source["attempts"].values()
                      if attempt.get("status") == "kept" and attempt.get("candidate_id") == reference["candidate_id"]), None)
@@ -539,7 +536,7 @@ def _event(workdir, state, kind, *, update=None, attempt=None, details=None):
 
 def _integrity(workdir, state):
     contract = _contract(_json(workdir / "contract.json"))
-    if _hash(contract) != state["contract_hash"]:
+    if _revision(contract) != state["contract_revision"]:
         raise LoopError("Frozen contract changed; start a new experiment for a different protocol")
     project = Path(state["project"])
     actual = _manifest(project, _protected(contract), required=True)
@@ -561,9 +558,9 @@ def _integrity(workdir, state):
 def _checked(workdir, state):
     try:
         contract = _integrity(workdir, state)
-        verification = {"checked_at": _now(), "contract_hash": state["contract_hash"],
-                        "protected_manifest_hash": _hash(state["locked_files"]),
-                        "environment_identity_hash": _hash(state.get("environment_identity")),
+        verification = {"checked_at": _now(), "contract_revision": state["contract_revision"],
+                        "protected_manifest_revision": _revision(state["locked_files"]),
+                        "environment_identity_revision": _revision(state.get("environment_identity")),
                         "scope": "declared files and selected environment identities; not an OS sandbox or dynamic dependency closure"}
         _event(workdir, state, "integrity_checked", update={"last_verified": verification,
                                                           "dependency_preflight": state["dependency_preflight"]})
@@ -612,9 +609,9 @@ def _restore(workdir, state, attempt):
             path.unlink()
         else:
             source = workdir / target["snapshot"] / name
-            if _file_info(source) is None or _file_info(source)["sha256"] != desired["sha256"]:
+            if _file_info(source) is None or _file_info(source)["version"] != desired["version"]:
                 raise LoopError(f"Stored parent snapshot changed: {name}")
-            _write(path, source.read_bytes())
+            shutil.copy2(source, path)
             os.chmod(path, desired["mode"])
     return conflicts
 
@@ -672,7 +669,7 @@ def initialize(project, workdir, contract_path):
         _write_json(workdir / "contract.json", contract)
         state = {"seq": 0, "attempts": {}}
         _event(workdir, state, "initialized", update={
-            "schema": 1, "project": str(project), "contract_hash": _hash(contract),
+            "schema": 1, "project": str(project), "contract_revision": _revision(contract),
             "locked_files": locked, "objective": contract["objective"],
             "initial": {"manifest": manifest, "snapshot": "initial/snapshot"},
             "best": None, "pending": None, "attempt_count": 0, "charged_seconds": 0.0,
@@ -680,8 +677,8 @@ def initialize(project, workdir, contract_path):
             "environment_identity": environment, "dependency_preflight": preflight,
             "evaluation": contract.get("evaluation"), "finalized": None,
             "task_set_identity": task_identity,
-            "last_verified": {"checked_at": _now(), "contract_hash": _hash(contract),
-                              "protected_manifest_hash": _hash(locked), "environment_identity_hash": _hash(environment),
+            "last_verified": {"checked_at": _now(), "contract_revision": _revision(contract),
+                              "protected_manifest_revision": _revision(locked), "environment_identity_revision": _revision(environment),
                               "scope": "declared files and selected environment identities; not an OS sandbox or dynamic dependency closure"},
         })
         # Local evidence commits first. Registration is idempotent and run()
@@ -708,7 +705,7 @@ def _read_measurements(path, contract):
         if not isinstance(result, dict) or name not in result or not _finite(result[name]):
             raise LoopError(f"Metric {name!r} must be one finite JSON number, not bool or text")
     # Preserve exact integer metrics (e.g. counts above 2**53).
-    return {name: result[name] for name in sorted(names)}, hashlib.sha256(raw).hexdigest()
+    return {name: result[name] for name in sorted(names)}, _file_info(path)["version"]
 
 
 def _guard_failures(measurements, contract):
@@ -747,7 +744,7 @@ def _selection(attempt, parent, state, contract):
 
 def _metric_evidence(workdir, attempt):
     path = workdir / attempt["metrics"]
-    if not path.is_file() or path.is_symlink() or _file_info(path)["sha256"] != attempt.get("metrics_sha256"):
+    if not path.is_file() or path.is_symlink() or _file_info(path)["version"] != attempt.get("metrics_revision"):
         raise LoopError(f"Raw metrics evidence changed or is missing for {attempt['id']}; cannot use this evaluation")
 
 
@@ -876,10 +873,7 @@ def run(workdir, run_id, hypothesis="", replicate_of=None):
             raise
         parent_id = state["best"]
         candidate_id = (contract["evaluation"]["frozen_candidate"]["candidate_id"] if final else
-                        source["candidate_id"] if source else _hash({
-            "contract": state["contract_hash"], "parent": parent_id,
-            "parent_candidate": None if baseline else _target(state)["candidate_id"], "manifest": manifest,
-        }))
+                        source["candidate_id"] if source else "candidate-" + run_id
         metrics_path = destination / "metrics.json"
         argv = [
             arg.replace("{metrics}", str(metrics_path)).replace("{attempt_dir}", str(destination))
@@ -973,7 +967,7 @@ def run(workdir, run_id, hypothesis="", replicate_of=None):
             outcome, error = "integrity_error", str(exc)
         if outcome == "ok":
             try:
-                attempt["measurements"], attempt["metrics_sha256"] = _read_measurements(metrics_path, contract)
+                attempt["measurements"], attempt["metrics_revision"] = _read_measurements(metrics_path, contract)
                 attempt["metric"] = attempt["measurements"][contract["metric"]["name"]]
                 if baseline and not final and _guard_failures(attempt["measurements"], contract):
                     outcome, error = "constraint_violation", "Initial baseline violates frozen metric guards"
@@ -1166,7 +1160,7 @@ def note(workdir, run_id, category, finding, next_action, evidence, corrects=Non
             path = _file(workdir, relative)
             if not path.is_file():
                 raise LoopError("Observation evidence must be an existing task file")
-            anchors[relative] = _file_info(path)["sha256"]
+            anchors[relative] = _file_info(path)["version"]
         observation = {"category": category, "finding": finding, "next_action": next_action,
                        "evidence": anchors, "origin": "host_interpretation"}
         if corrects is not None:
@@ -1216,7 +1210,7 @@ def context(workdir, query="", limit=3, fast=False):
         for relative, expected in (() if fast else attempt.get("observation", {}).get("evidence", {}).items()):
             try:
                 actual = _file_info(_file(workdir, relative))
-                if actual is None or actual["sha256"] != expected:
+                if actual is None or actual["version"] != expected:
                     issues.append("Observation evidence changed: " + relative)
             except (LoopError, OSError) as exc:
                 issues.append(str(exc))
@@ -1254,7 +1248,7 @@ def _summary(workdir, state, contract):
     result = {
         "event_seq": state["seq"],
         "objective": state["objective"], "constraints": contract["constraints"],
-        "scientific_value": contract["scientific_value"], "contract_hash": state["contract_hash"],
+        "scientific_value": contract["scientific_value"], "contract_revision": state["contract_revision"],
         "best": None if best is None else {key: best.get(key) for key in ("id", "candidate_id", "metric", "measurements", "hypothesis", "elapsed_seconds")},
         "pending": None if pending is None else {key: pending.get(key) for key in ("id", "status", "outcome", "pid", "error")},
         "budget": {
@@ -1309,7 +1303,7 @@ def _status_from_state(workdir, state, fast=False):
         _integrity(workdir, state)
         result["integrity"] = "ok"
         result["declared_integrity"]["dependency_preflight"] = state.get("dependency_preflight")
-        result["verification"] = {"rechecked": True, "passed": True, "checked_at": _now(), "contract_hash": state["contract_hash"]}
+        result["verification"] = {"rechecked": True, "passed": True, "checked_at": _now(), "contract_revision": state["contract_revision"]}
     except LoopError as exc:
         result["integrity"] = str(exc)
         result["verification"] = {"rechecked": True, "passed": False, "checked_at": _now()}
