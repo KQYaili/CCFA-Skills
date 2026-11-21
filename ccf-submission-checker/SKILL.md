@@ -61,4 +61,6 @@ For an explicitly requested **whole-manuscript final audit**, route scientific/w
 
 ## Check Scope
 
+For a CVPR 2027 main-track project, use the [year-specific guide](../ccf-paper-writer/references/venue-guides/cvpr.md). To identify a project's style, run `python ccf-submission-checker/scripts/verify_cvpr2027_kit.py --style path/to/cvpr.sty`. It recognizes both officially sourced style variants. With no arguments the command verifies the bundled template files. Report the build, anonymity and rendered page boundary from the actual manuscript.
+
 Follow `../ccf-common/references/handoff-modes.md` and `../ccf-common/references/task-modes.md`. Run checks relevant to the requested mode and actual artifacts. Distinguish pass, fail, not applicable, and not verified; missing tools do not imply passing or failure. Record the official rule URL and the date checked. Reuse the project build configuration and place generated logs/previews in the established or shared task build directory. Update the canonical readiness report in place and distinguish old PDFs from successful current builds. Recheck only affected build surfaces after a fix. Underfilling a page budget alone is not a venue violation. Do not upload or submit files merely because a readiness check was requested.

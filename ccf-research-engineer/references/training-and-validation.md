@@ -25,12 +25,17 @@ Use observed symptoms to choose a targeted diagnostic. Examples below are condit
 
 | Observation or changed path | Useful next check |
 | --- | --- |
+| A package installs but the job cannot import it | Capture the failing process's interpreter, then run that interpreter's `-m pip show <package>`. For an extension load error, record the exact missing library or symbol and check the wheel, Python ABI and platform before reinstalling. |
+| A GPU is visible to the driver but the framework cannot use it | In the same environment as the job, record the driver, the framework build and its reported accelerator runtime. Test a small allocation and operation on the selected device. The CUDA version printed by `nvidia-smi` describes driver capability. |
+| The loader or a distributed job stalls | Replay a known batch in the main process with one device and zero loader workers. Restore workers and additional ranks one change at a time. Preserve the first failing worker's traceback and the batch or rank that reproduces it. |
 | A new module has no effect | Trace its activation from the real entry point; inspect loss contribution, parameter registration, gradients, optimizer membership and update. |
 | Loss or gradients become non-finite | Locate the first affected batch/operation; inspect data/masks/reductions, precision, scale, learning rate and clipping before changing unrelated modules. |
 | Training does not learn | Check labels, sampling, loss normalization and updates; a tiny-subset fit or controlled reference can distinguish plumbing errors from a poor mechanism. Some stochastic or constrained objectives need a different diagnostic than perfect overfitting. |
 | Train/eval or checkpoint behavior disagrees | Inspect preprocessing, mode switches, state/weight loading, RNG, and evaluator configuration; test the changed state transition. |
 | Restart differs materially from continuation | Check model, optimizer, scheduler, scaler, random state, data position and distributed state as relevant; resuming weights alone is not resuming the full training process. |
 | Multi-device results differ unexpectedly | Compare the relevant reference path under controlled inputs; inspect reductions, effective batch, normalization, RNG and sharding/communication semantics. |
+
+After a repair, rerun the smallest failing case and the affected normal entry point. Record the command, corrective change and last verified training step. A resumed run establishes execution only through the observed step. Report scientific metrics after the intended evaluator completes.
 
 Use the smallest diagnostic that can resolve the observed uncertainty while preserving its relevant mechanism. Keep diagnostics separate from publication comparisons. Retest the affected real path after a fix. Repeating the same unsuccessful run needs changed evidence, a justified transient-failure retry, or a concrete repair.
 

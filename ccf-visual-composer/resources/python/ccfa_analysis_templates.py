@@ -393,7 +393,8 @@ def sensitivity_dynamics(data, enc, width, height):
         ax = _panel(fig, grid[0, 0], "a", block.get("title", "State-space exposure"))
         density = p.density_map(ax, block["x"], block["y"], gridsize=block.get("gridsize", 30),
                                 xscale=block.get("xscale", "linear"), yscale=block.get("yscale", "log"),
-                                cmap=block.get("cmap", "viridis"), xlabel=block["xlabel"], ylabel=block["ylabel"])
+                                cmap=block.get("cmap", "viridis"), xlabel=block["xlabel"], ylabel=block["ylabel"],
+                                counts=block.get("counts"))
         bar = fig.colorbar(density, ax=ax, fraction=.04, pad=.035)
         bar.solids.set_rasterized(False)
         bar.set_label("Samples per bin")
@@ -402,7 +403,7 @@ def sensitivity_dynamics(data, enc, width, height):
             if not np.isfinite(threshold) or (block.get("yscale", "log") == "log" and threshold <= 0):
                 raise ValueError("Density threshold must be finite and valid for its axis")
             observed = _vector(block["y"], "density y")
-            share = 100 * float(np.mean(observed <= threshold))
+            share = 100 * float(np.average(observed <= threshold, weights=block.get("counts")))
             ax.axhline(threshold, linestyle="--", color="#ce6a36", linewidth=.9)
             ax.text(.97, .045, f"{share:.1f}% at or below {threshold:g}", transform=ax.transAxes,
                     ha="right", va="bottom", fontsize=8, color="#9d4d24",

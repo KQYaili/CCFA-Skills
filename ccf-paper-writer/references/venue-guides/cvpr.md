@@ -7,10 +7,17 @@
 | Venue slug | `cvpr` |
 | Venue family | AI |
 | CCF tier | CCF-A |
-| Template path | `ccf-latex-templates/CVPR/main.tex`, `ccf-latex-templates/CVPR/preamble.tex`, `ccf-latex-templates/CVPR/rebuttal.tex` |
-| Official URL | https://cvpr2026.thecvf.com |
-| Last verified | Legacy migration on 2026-06-06; official policy must be rechecked before submission. |
-| Source status | Migrated local guide; not independently reverified in v0.4.0. |
+| 2027 main track | [Official author guidelines](https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines) |
+| 2027 template | [Conference-linked v1 kit](../../../ccf-latex-templates/CVPR/2027/main.tex) with [archive and file hashes](../../../ccf-latex-templates/CVPR/2027/template-source.json), checked 2026-11-21 |
+| 2026 template | [Historical main file](../../../ccf-latex-templates/CVPR/main.tex) and its sibling files |
+
+## CVPR 2027 Main Track
+
+For a new 2027 project, copy the full `ccf-latex-templates/CVPR/2027/` kit, including its `sec/` directory. The review entry point loads `cvpr.sty` as `\usepackage[review]{cvpr}` and sets `\confYear` to 2027. The kit also includes a separate rebuttal entry point. For an existing paper, keep its manuscript sources and compare the style file first.
+
+The review limit is eight pages of main content including figures and tables. Inspect where the main text ends in the rendered PDF and use the exact-year guidelines for permitted additional material and anonymity. Recheck the instructions for the actual track and stage at submission time. [CVPR 2027 author guidelines](https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines)
+
+The [rebuttal template](../../../ccf-latex-templates/CVPR/2027/rebuttal.tex) specifies one page. The unedited v1 example rendered as one US Letter page with pdfLaTeX and BibTeX, and as two with Tectonic, which placed the sample reference on page two. Check the final PDF with the toolchain used for submission.
 
 ## Usage Boundary
 
@@ -19,7 +26,7 @@
 - Use `ccf-paper-reviewer` or `ccf-submission-checker` for format audit, depending on whether the task is manuscript-facing or submission-package-facing.
 - Verify current-year official rules before final submission.
 
-## Migrated Venue Notes
+## Historical 2026 Notes
 
 # CVPR 2026 Conference Writing Skill
 

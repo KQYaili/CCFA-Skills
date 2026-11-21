@@ -277,6 +277,24 @@ sources:
     verified_at: 2026-10-19
     stale_after_days: 30
     notes: Inspected the official tex, sty, and bibliography style; fetch the full bundle for 2027 projects rather than renaming the local 2026 file.
+  - id: cvpr-2027-author-guidelines
+    title: CVPR 2027 Author Guidelines
+    url: https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines
+    source_type: venue_policy
+    used_by: [ccf-paper-writer, ccf-submission-checker]
+    recorded_at: 2026-11-21
+    verified_at: 2026-11-21
+    stale_after_days: 30
+    notes: Main-track review format, anonymity, eight-page main-content budget and link to the conference template.
+  - id: cvpr-2027-author-kit
+    title: CVPR 2027 Conference-Linked LaTeX Author Kit v1
+    url: https://media.eventhosts.cc/Conferences/CVPR2027/author-kit-CVPR2027-v1-latex.zip
+    source_type: venue_template
+    used_by: [ccf-paper-writer, ccf-submission-checker]
+    recorded_at: 2026-11-21
+    verified_at: 2026-11-21
+    stale_after_days: 30
+    notes: Checked the conference archive and all 12 files against the year-specific mirror. The manifest also identifies the alternative official GitHub style.
   - id: cvpr-2026-reviewer-guidelines
     title: CVPR 2026 Reviewer Guidelines
     url: https://cvpr.thecvf.com/Conferences/2026/ReviewerGuidelines

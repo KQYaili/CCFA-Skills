@@ -4,7 +4,11 @@ Use this file to design CCF-A evidence packages without fabricating results.
 
 ## Evidence Principle
 
-Start from the research claim or decision, not the table. Each experiment should resolve a relevant question such as:
+Choose an observation that distinguishes the scientific claim from a plausible alternative. For example, if a shortcut can improve the headline metric, evaluate a condition in which the shortcut and the intended capability make different predictions. Keep that prediction separate from any observed outcome.
+
+For two binary factors with a proposed interaction, compare the change from adding A with B off to the change from adding A with B on, on the scale of the claim. This uses all four conditions under the same evaluation protocol. If only the baseline and the configuration with both factors are available, report the combined change.
+
+Each experiment should resolve a relevant question such as:
 
 - Does the method solve the stated problem?
 - Why does the mechanism work?

@@ -31,7 +31,7 @@ skills:
     exclude: "Does not replace deep related-work search, citation audit, or final idea scoring."
     handoff: "ccf-literature-searcher, ccf-idea-reviewer, ccf-idea-optimizer, ccf-paper-writer, ccf-integrity-auditor"
   - name: ccf-literature-searcher
-    trigger: "Find and verify external literature, prior art, datasets, benchmarks, and citation candidates. Use for 文献检索, 相关工作, benchmark搜索, and research opportunity maps. Recurring recent-paper watch belongs to ccf-literature-monitor; existing-citation audits, manuscript assessment, and result schemas have separate owners."
+    trigger: "Find and verify literature, prior art, datasets and benchmarks. Explain a named paper using its equations, figures and experimental evidence. Use for 文献检索, 单篇论文精读, 相关工作, benchmark搜索, citation candidates and opportunity maps. Recurring paper watch belongs to ccf-literature-monitor and manuscript assessment to ccf-paper-reviewer."
     exclude: "Does not own supplied-result table schemas, experiment evidence structure, full manuscript review, already-cited-only audits, or manuscript writing."
     handoff: "ccf-idea-optimizer, ccf-idea-reviewer, ccf-experiment-designer, ccf-paper-writer, ccf-paper-reviewer, ccf-integrity-auditor"
   - name: ccf-experiment-designer

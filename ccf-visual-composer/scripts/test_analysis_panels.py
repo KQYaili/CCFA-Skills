@@ -297,6 +297,21 @@ class AnalysisPanelTests(unittest.TestCase):
         self.fig.colorbar(density, ax=self.ax).set_label("Observations")
         self.fig.canvas.draw()
 
+    def test_coordinate_counts_match_expanded_observations_on_log_axes(self):
+        x = np.array([1, 1, 3, -5])
+        y = np.array([1, 1, 3, 0])
+        counts = np.array([2, 3, 7, 0])
+        options = {"xscale": "log", "yscale": "log", "gridsize": 4}
+        aggregated = panels.density_map(self.ax, x, y, counts=counts, **options)
+        expanded = panels.density_map(self.ax, np.repeat(x, counts), np.repeat(y, counts), **options)
+        np.testing.assert_array_equal(aggregated.get_array(), expanded.get_array())
+        np.testing.assert_array_equal(np.sort(aggregated.get_array()), [5, 7])
+
+    def test_coordinate_counts_reject_invalid_weights(self):
+        for counts in ([1], [1.5, 2], [1, -1], [0, 0], [1, np.nan], [True, False], [2**53, 1]):
+            with self.subTest(counts=counts), self.assertRaises(ValueError):
+                panels.density_map(self.ax, [1, 3], [1, 3], counts=counts)
+
     def test_density_rejects_invalid_logs_dimensions_and_nonfinite_values(self):
         for x, y, kwargs in (([0, 1], [1, 2], {"xscale": "log"}),
                              ([1, 2], [-1, 2], {"yscale": "log"}),
