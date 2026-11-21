@@ -62,7 +62,7 @@ class WritingContextTests(unittest.TestCase):
         source = packet["context"]["sources"][0]
         self.assertEqual(source["text"], "The selected explanation states its operation.\n它随后解释同一对象的依赖关系。\n")
         self.assertEqual((source["start_line"], source["end_line"]), (3, 4))
-        self.assertEqual(source["version"], writing_context._snapshot(self.exemplar)[1])
+        self.assertEqual(source["version"], context._snapshot(self.exemplar)[1])
         self.assertNotIn("第一行不是", source["text"])
         self.assertNotIn("Unused tail", source["text"])
 
