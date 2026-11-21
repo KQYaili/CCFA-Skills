@@ -35,7 +35,7 @@ def audit(spec):
     """Return an inspectable plan; never run any declared command."""
     require(isinstance(spec, dict), "root must be an object")
     project = nonempty(spec.get("project"), "project")
-    require(spec.get("schema_version") == 1, "schema_version must be 1")
+    require(type(spec.get("schema_version")) is int and spec["schema_version"] == 1, "schema_version must be 1")
     budget = spec.get("limits")
     require(isinstance(budget, dict), "limits must be an object")
     max_jobs = positive_int(budget.get("max_jobs"), "limits.max_jobs")
