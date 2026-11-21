@@ -34,12 +34,12 @@ class ExpertRequestTests(unittest.TestCase):
     def completed_fixture(self, prepared):
         """Declared test evidence only; this suite never executes a model."""
         request = prepared["request"]
-        return {"status": "complete", "executed": True, "fingerprint": prepared["fingerprint"],
+        return {"status": "complete", "executed": True, "request_identity": prepared["request_identity"],
                 "response": "Fixture specialist response with located findings.",
                 "execution": {"model": request["model"], "fresh_context": True,
                               **copy.deepcopy(request["execution_spec"]),
-                              "policies": [{"id": p["id"], "sha256": p["sha256"]} for p in request["policies"]]},
-                "coverage": [{"path": d["path"], "sha256": d["sha256"], "complete": True} for d in request["documents"]]}
+                              "policies": [{"id": p["id"], "version": p["version"]} for p in request["policies"]]},
+                "coverage": [{"path": d["path"], "version": d["version"], "complete": True} for d in request["documents"]]}
 
     def test_off_does_not_even_read_manuscript(self):
         with patch.object(expert, "_source") as source:
@@ -116,13 +116,13 @@ class ExpertRequestTests(unittest.TestCase):
         self.assertNotIn("independent_review", result["request"])
         self.assertEqual([s["role"] for s in result["request"]["documents"]], ["manuscript", "supplement", "venue-criteria"])
 
-    def test_request_fingerprint_changes_with_source_phase_or_model(self):
-        first = self.request()["fingerprint"]
-        self.assertEqual(first, self.request()["fingerprint"])
-        self.assertNotEqual(first, self.request(phase="results-pending")["fingerprint"])
-        self.assertNotEqual(first, self.request(available_models=["gpt-6-sol"])["fingerprint"])
+    def test_request_request_identity_changes_with_source_phase_or_model(self):
+        first = self.request()["request_identity"]
+        self.assertEqual(first, self.request()["request_identity"])
+        self.assertNotEqual(first, self.request(phase="results-pending")["request_identity"])
+        self.assertNotEqual(first, self.request(available_models=["gpt-6-sol"])["request_identity"])
         self.paper.write_text("Changed manuscript", encoding="utf-8")
-        self.assertNotEqual(first, self.request()["fingerprint"])
+        self.assertNotEqual(first, self.request()["request_identity"])
 
     def test_neutral_question_scope_constraints_and_actual_focus_reach_reader(self):
         result = self.request(review_question="Does the update preserve object identity?",
@@ -135,24 +135,24 @@ class ExpertRequestTests(unittest.TestCase):
         self.assertEqual(task["requested_scope"], "Inspect the supplied method only.")
         self.assertEqual(task["constraints"], ["No numerical scores."])
         self.assertEqual(task["exclusions"], ["New experiment design"])
-        self.assertEqual(task["focus_locations"][0]["sha256"], result["request"]["documents"][0]["sha256"])
+        self.assertEqual(task["focus_locations"][0]["version"], result["request"]["documents"][0]["version"])
         self.assertNotIn("LEAD_REJECT_SENTINEL", json.dumps(result))
 
-    def test_fingerprint_tracks_actual_neutral_task_and_not_leading_reason(self):
-        baseline = self.request()["fingerprint"]
+    def test_request_identity_tracks_actual_neutral_task_and_not_leading_reason(self):
+        baseline = self.request()["request_identity"]
         variants = [dict(review_question="Inspect the mechanism."), dict(scope="Only the method."),
                     dict(constraints=["No scores."]), dict(exclusions=["Experiments"]),
                     dict(focus_locations=[{"path": self.paper, "start_line": 1, "end_line": 2}])]
         for variant in variants:
-            self.assertNotEqual(baseline, self.request(**variant)["fingerprint"])
-        self.assertEqual(baseline, self.request(reason="Lead wants a different verdict.")["fingerprint"])
+            self.assertNotEqual(baseline, self.request(**variant)["request_identity"])
+        self.assertEqual(baseline, self.request(reason="Lead wants a different verdict.")["request_identity"])
 
     def test_effective_runtime_effort_and_options_change_identity(self):
-        baseline = self.prepared_for_reuse()["fingerprint"]
+        baseline = self.prepared_for_reuse()["request_identity"]
         for change in [dict(runtime="test-host/2"), dict(effort="high"), dict(options={"max_output_tokens": 1000})]:
             args = dict(runtime="test-host/1", effort="ultra", options={})
             args.update(change)
-            self.assertNotEqual(baseline, self.request(**args)["fingerprint"])
+            self.assertNotEqual(baseline, self.request(**args)["request_identity"])
         self.assertFalse(self.request()["reuse_identity_complete"])
         self.assertTrue(self.prepared_for_reuse()["reuse_identity_complete"])
         self.assertFalse(self.prepared_for_reuse()["executed"])
@@ -162,12 +162,12 @@ class ExpertRequestTests(unittest.TestCase):
         original = expert.PROMPT_PATH.read_text(encoding="utf-8")
         path.write_text(original, encoding="utf-8")
         with patch.object(expert, "PROMPT_PATH", path):
-            baseline = self.request(language="en")["fingerprint"]
+            baseline = self.request(language="en")["request_identity"]
             changed = original.replace("<!-- prompt:zh-CN -->", "<!-- prompt:zh-CN -->\nDifferent Chinese-only instruction.")
             path.write_text(changed + "\nDocumentation changed only.\n", encoding="utf-8")
-            self.assertEqual(baseline, self.request(language="en")["fingerprint"])
+            self.assertEqual(baseline, self.request(language="en")["request_identity"])
             path.write_text(changed.replace("<!-- prompt:en -->", "<!-- prompt:en -->\nInspect the specified question."), encoding="utf-8")
-            self.assertNotEqual(baseline, self.request(language="en")["fingerprint"])
+            self.assertNotEqual(baseline, self.request(language="en")["request_identity"])
 
     def test_required_and_additional_applied_policy_versions_are_bound(self):
         family = self.root / "family"
@@ -179,10 +179,10 @@ class ExpertRequestTests(unittest.TestCase):
             first = self.request(policy_files=[self.criteria])
             self.assertEqual([p["id"] for p in first["request"]["policies"]], ["ccf-humanization", "ccf-common", "additional-policy-1"])
             policy.write_text("Changed shared baseline.", encoding="utf-8")
-            self.assertNotEqual(first["fingerprint"], self.request(policy_files=[self.criteria])["fingerprint"])
-            second = self.request(policy_files=[self.criteria])["fingerprint"]
+            self.assertNotEqual(first["request_identity"], self.request(policy_files=[self.criteria])["request_identity"])
+            second = self.request(policy_files=[self.criteria])["request_identity"]
             self.criteria.write_text("Changed additional applied instruction.", encoding="utf-8")
-            self.assertNotEqual(second, self.request(policy_files=[self.criteria])["fingerprint"])
+            self.assertNotEqual(second, self.request(policy_files=[self.criteria])["request_identity"])
 
     def test_matching_completed_actual_execution_and_coverage_can_be_reused(self):
         prepared = self.prepared_for_reuse()
