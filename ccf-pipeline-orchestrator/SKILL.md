@@ -44,7 +44,7 @@ For an explicitly authorized multi-session paper project, optionally coordinate 
 
 ## Workflow
 
-For explicitly authorized multi-job or GPU-grid campaigns, consult [experiment-queue-preflight.md](references/experiment-queue-preflight.md) and use `scripts/experiment_queue_preflight.py` only for read-only dependency/budget validation. A valid plan never initiates a scheduler, paid compute, SSH, or automatic retries. The research engineer owns actual execution and independent result records; avoid duplicate scheduling loops.
+When planning several GPU jobs from a manifest, use the [read-only queue preflight](references/experiment-queue-preflight.md) to inspect dependencies, output destinations and the compute budget across attempts. The research engineer handles execution under the campaign's existing authorization.
 
 1. Identify target venue when relevant, current stage, available artifacts, constraints, deadline pressure, and the user's immediate goal. Distinguish a requested plan, a bounded specialist task, and autonomous research. For the latter, establish its per-run execution contract and remaining budget through `references/autonomous-research.md`; missing execution inputs block only the dependent run, not hypothesis development or preparation.
 2. Read `ccfa.yaml` when available; if absent, continue with supplied artifacts. Do not require setup or create project state merely to route work; disclose its absence only when it limits requested tracking.

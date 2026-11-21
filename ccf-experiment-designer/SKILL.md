@@ -43,7 +43,7 @@ Own the scientific comparison, required run conditions, and interpretation of ac
 
 ## Workflow
 
-For a requested batch/multi-seed experiment campaign, specify independent replication unit, per-arm protocol/budget identity, failure and missing-data handling before queueing. The optional read-only [experiment queue preflight](../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md) checks only job dependencies and declared ceilings; it cannot certify valid experimental replicates or launch runs. Existing [experiment-audit.md](references/experiment-audit.md) remains the downstream acceptance gate.
+For a multi-seed campaign, specify what varies independently, how much compute each comparison receives and how failed or missing runs enter the analysis. If the campaign has a job manifest, the orchestrator can [check its dependencies and compute budget](../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md). Use the [post-run audit](references/experiment-audit.md) when turning measured results into claims.
 
 1. Identify the requested output after both family preflights. Raw protocol planning and evidence schemas use Humanization's baseline without a manuscript rewrite. Select detailed prose/experiment checks only when applicable, and establish claims and available evidence before method-version checks.
 2. Extract the storyline from the idea or draft. Reuse the supplied claim/mechanism description. Read `../ccf-paper-writer/references/storyline-blueprint.md` only when the central claim needs clarification, not for an already specified result table.

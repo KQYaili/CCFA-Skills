@@ -5,7 +5,11 @@ Inputs: JSON with project, jobs, resource ceiling. No process launching,
 SSH, installs, network, job killing, run-history updates or file mutation.
 """
 import argparse
+from decimal import Decimal, InvalidOperation
+from fractions import Fraction
+from graphlib import CycleError, TopologicalSorter
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -19,9 +23,8 @@ def require(ok, message):
         raise QueueSpecError(message)
 
 
-def positive_int(value, name, zero=False):
-    require(type(value) is int and value >= (0 if zero else 1),
-            f"{name} must be an integer >= {0 if zero else 1}")
+def positive_int(value, name):
+    require(type(value) is int and value >= 1, f"{name} must be a positive integer")
     return value
 
 
@@ -31,7 +34,20 @@ def nonempty(value, name):
     return value
 
 
-def audit(spec):
+def hours_value(value, name):
+    # Accept ordinary Python numbers in audit() and the exact decimal tokens from JSON.
+    require(type(value) in (int, float, Decimal)
+            and (not isinstance(value, Decimal) or value.is_finite())
+            and 0 < value <= sys.float_info.max and float(value) > 0,
+            f"{name} must be a finite positive number within the supported numeric range")
+    return Fraction(str(value))
+
+
+def report_number(value):
+    return value.numerator if value.denominator == 1 else float(value)
+
+
+def audit(spec, *, base_dir=None):
     """Return an inspectable plan; never run any declared command."""
     require(isinstance(spec, dict), "root must be an object")
     project = nonempty(spec.get("project"), "project")
@@ -41,86 +57,98 @@ def audit(spec):
     max_jobs = positive_int(budget.get("max_jobs"), "limits.max_jobs")
     max_parallel = positive_int(budget.get("max_parallel"), "limits.max_parallel")
     max_attempts = positive_int(budget.get("max_attempts"), "limits.max_attempts")
-    max_gpu_hours = budget.get("max_gpu_hours")
-    require(type(max_gpu_hours) in (int, float) and 0 < max_gpu_hours < 1e8,
-            "limits.max_gpu_hours must be finite and positive")
+    max_gpu_hours = hours_value(budget.get("max_gpu_hours"), "limits.max_gpu_hours")
     require(isinstance(spec.get("jobs"), list) and spec["jobs"], "jobs must be a nonempty list")
     require(len(spec["jobs"]) <= max_jobs, "job count exceeds max_jobs")
     require(max_parallel <= max_jobs, "max_parallel cannot exceed max_jobs")
 
-    jobs = {}
+    dependencies = {}
     paths = set()
-    expected = 0.0
+    expected = Fraction(0)
+    base_dir = os.path.abspath(base_dir or ".")
     for pos, raw in enumerate(spec["jobs"]):
         require(isinstance(raw, dict), f"jobs[{pos}] must be an object")
         name = nonempty(raw.get("id"), f"jobs[{pos}].id")
-        require(name not in jobs, "duplicate job ID: " + name)
-        cmd = nonempty(raw.get("command"), f"jobs[{pos}].command")
+        require(name not in dependencies, "duplicate job ID: " + name)
+        nonempty(raw.get("command"), f"jobs[{pos}].command")
         # Commands are data only and must never be evaluated by the preflight.
         working_dir = nonempty(raw.get("cwd"), f"jobs[{pos}].cwd")
         output = nonempty(raw.get("output"), f"jobs[{pos}].output")
-        require(output not in paths, "duplicate output destination: " + output)
-        paths.add(output)
+        for path in (working_dir, output):
+            require("\0" not in path, f"{name}: paths cannot contain a null character")
+            require(not os.path.splitdrive(path)[0] or os.path.isabs(path),
+                    f"{name}: use a fully qualified or relative path rather than a drive-relative path")
+        destination = os.path.normcase(os.path.normpath(os.path.join(base_dir, working_dir, output)))
+        require(destination not in paths, "duplicate output destination: " + output)
+        paths.add(destination)
         depends = raw.get("depends_on", [])
         require(isinstance(depends, list) and all(isinstance(x, str) and x for x in depends),
                 "depends_on must be a list of IDs for " + name)
         require(len(depends) == len(set(depends)), "duplicate dependency for " + name)
         gpu = positive_int(raw.get("gpu_count"), f"{name}.gpu_count")
-        hours = raw.get("estimated_hours")
-        require(type(hours) in (int, float) and 0 < hours < 1e8,
-                f"{name}.estimated_hours must be finite and positive")
+        hours = hours_value(raw.get("estimated_hours"), f"{name}.estimated_hours")
         attempts = positive_int(raw.get("max_attempts", 1), f"{name}.max_attempts")
         require(attempts <= max_attempts, f"{name}.max_attempts exceeds global ceiling")
         expected += gpu * hours * attempts
-        jobs[name] = {"id": name, "command": cmd, "cwd": working_dir, "output": output,
-                      "depends_on": depends, "gpu_count": gpu,
-                      "estimated_hours": hours, "max_attempts": attempts}
+        dependencies[name] = depends
 
     require(expected <= max_gpu_hours,
-            f"worst-case GPU hours {expected:.3f} exceed limit {max_gpu_hours}")
-    for name, job in jobs.items():
-        for dep in job["depends_on"]:
-            require(dep in jobs, f"unknown dependency: {name} -> {dep}")
+            f"estimated GPU hours across all attempts exceed limit {budget['max_gpu_hours']}")
+    for name, parents in dependencies.items():
+        for dep in parents:
+            require(dep in dependencies, f"unknown dependency: {name} -> {dep}")
             require(dep != name, f"self-dependency: {name}")
 
-    pending = set(jobs)
+    graph = TopologicalSorter(dependencies)
+    try:
+        graph.prepare()
+    except CycleError as exc:
+        raise QueueSpecError("dependency cycle detected") from exc
     waves = []
-    done = set()
-    while pending:
-        ready = sorted(name for name in pending if set(jobs[name]["depends_on"]) <= done)
-        require(ready, "dependency cycle detected")
-        # This is a conservative plan of dependency waves, not real GPU packing.
-        # Do not claim a wave has completed before the actual scheduler confirms it.
+    while graph.is_active():
+        ready = sorted(graph.get_ready())
         waves.append(ready)
-        done.update(ready)
-        pending.difference_update(ready)
+        graph.done(*ready)
 
     return {
-        "valid": True, "project": project, "job_count": len(jobs),
-        "max_parallel_jobs": max_parallel, "worst_case_gpu_hours": round(expected, 4),
-        "resource_limit_gpu_hours": max_gpu_hours, "dependency_waves": waves,
+        "valid": True, "project": project, "job_count": len(dependencies),
+        "max_parallel_jobs": max_parallel, "worst_case_gpu_hours": report_number(expected),
+        "resource_limit_gpu_hours": report_number(max_gpu_hours), "dependency_waves": waves,
         "commands_executed": False,
-        "status": "PREFLIGHT_ONLY_REQUIRES_AUTHORIZED_SCHEDULER",
+        "status": "preflight_only",
         "limitations": [
             "Does not inspect remote GPU availability, model/data licenses, live checkpoints or command effects",
             "Estimated hours are inputs, not measured compute; caller must validate budget assumptions",
             "Wave order is a dependency order, not a fully scheduled GPU timeline",
-            "Job execution and retries require explicit authorization and a separate installed scheduler"
+            "Execution and retries are handled by the workflow that runs the jobs"
         ]
     }
 
 
+def unique_fields(pairs):
+    record = {}
+    for name, value in pairs:
+        require(name not in record, f"duplicate JSON field: {name}")
+        record[name] = value
+    return record
+
+
+def reject_constant(token):
+    raise QueueSpecError(f"invalid JSON number: {token}")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--manifest", required=True, help="Local UTF-8 JSON queue manifest")
+    parser.add_argument("--manifest", required=True, type=Path, help="Local UTF-8 JSON queue manifest")
     args = parser.parse_args(argv)
     try:
-        payload = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
-        result = audit(payload)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(json.dumps({"valid": False, "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        payload = json.loads(args.manifest.read_text(encoding="utf-8-sig"), parse_float=Decimal,
+                             object_pairs_hook=unique_fields, parse_constant=reject_constant)
+        result = audit(payload, base_dir=args.manifest.parent)
+    except (OSError, ValueError, InvalidOperation, RecursionError) as exc:
+        print(json.dumps({"valid": False, "error": str(exc)}), file=sys.stderr)
         return 2
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, indent=2))
     return 0
 
 
