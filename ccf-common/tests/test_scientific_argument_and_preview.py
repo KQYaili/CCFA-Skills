@@ -44,7 +44,7 @@ class ArgumentStateTests(unittest.TestCase):
             brief = argument.cli(["brief", "--file", str(statefile)])
             self.assertEqual(brief["message"], state["scientific_question"])
             state["paragraphs"] = [{"id": "intro-a", "section_id": "introduction",
-                                    "status": "verified", "manuscript_sha256": "a" * 64,
+                                    "status": "verified", "manuscript_version": "2001-01-01T00:00:00.000000+00:00 | 1 bytes",
                                     "verification": {"scope": "paragraph", "receipt": "review#3"}}]
             with self.assertRaisesRegex(ValueError, "stale"):
                 argument.validate(state, manuscript=paper)
@@ -59,9 +59,9 @@ class PatchPreviewTests(unittest.TestCase):
             paper.write_text("# Method\nOld claim.\n", encoding="utf-8")
             inventory = patching.inspect_manuscript(paper)
             packet = {"schema_version": 1, "operation": "write",
-                      "manuscript": {"path": str(paper), "sha256": inventory["sha256"]},
+                      "manuscript": {"path": str(paper), "version": inventory["version"]},
                       "targets": ["method"], "dependencies": []}
-            proposed = {"base_sha256": inventory["sha256"],
+            proposed = {"base_version": inventory["version"],
                         "edits": [{"section_id": "method", "before": "Old claim.", "after": "New claim."}]}
             preview = patching.apply_patch(packet, proposed, dry_run=True)
             self.assertTrue(preview["changed"])
@@ -80,10 +80,10 @@ class PatchPreviewTests(unittest.TestCase):
             paper.write_text("# Methods\nNo edit.\n", encoding="utf-8")
             inventory = patching.inspect_manuscript(paper)
             packet = {"schema_version": 1, "operation": "review",
-                      "manuscript": {"path": str(paper), "sha256": inventory["sha256"]},
+                      "manuscript": {"path": str(paper), "version": inventory["version"]},
                       "targets": ["methods"], "dependencies": []}
             with self.assertRaisesRegex(ValueError, "read-only"):
-                patching.apply_patch(packet, {"base_sha256": inventory["sha256"], "edits": []},
+                patching.apply_patch(packet, {"base_version": inventory["version"], "edits": []},
                                      dry_run=True)
 
 
