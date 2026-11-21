@@ -110,7 +110,7 @@ def _load(path, campaign_id, project):
         if not isinstance(data["final_uses"], dict):
             raise CampaignError("Invalid shared final-use record")
         for identity, item in data["final_uses"].items():
-            if (not isinstance(identity, str) or len(identity) != 64 or not isinstance(item, dict)
+            if (not isinstance(identity, str) or not identity or not isinstance(item, dict)
                     or item.get("status") not in ("reserved", "completed", "retryable", "unknown", "legacy_unknown")
                     or (item.get("status") != "legacy_unknown" and (
                         not _final_binding_valid(item.get("binding"))
