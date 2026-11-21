@@ -873,7 +873,7 @@ def run(workdir, run_id, hypothesis="", replicate_of=None):
             raise
         parent_id = state["best"]
         candidate_id = (contract["evaluation"]["frozen_candidate"]["candidate_id"] if final else
-                        source["candidate_id"] if source else "candidate-" + run_id
+                        source["candidate_id"] if source else "candidate-" + run_id)
         metrics_path = destination / "metrics.json"
         argv = [
             arg.replace("{metrics}", str(metrics_path)).replace("{attempt_dir}", str(destination))
