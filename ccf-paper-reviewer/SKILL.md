@@ -37,7 +37,7 @@ For a substantial scientific/full manuscript audit, use the shared [manuscript q
 
 For a substantive **writing/full review** where the paper reads like disconnected engineering evaluations or its research questions do not connect to its results, load the [reverse-outline and scientific claim-chain audit](references/reverse-outline-claim-chain.md). Use it as a diagnostic pass within the existing review format: reconstruct paragraph functions, check RQ-to-evidence links, and state the strongest unexcluded rival explanation. Do not produce a second review report or silently turn an exploratory association into a causal conclusion.
 
-If the manuscript has an optional [scientific argument state](../ccf-common/references/scientific-argument-state.md), use its question, competing hypotheses and paragraph lifecycle only as **review-navigation hints**. A \`frozen\` or \`verified\` paragraph remains subject to mathematical, evidential, consistency and venue issues; require version identity and an actual scoped receipt before reusing verification. Do not silently update the state or the paper during review.
+If the manuscript has an optional [scientific argument state](../ccf-common/references/scientific-argument-state.md), use its question, competing hypotheses and paragraph lifecycle only as **review-navigation hints**. A `frozen` or `verified` paragraph remains subject to mathematical, evidential, consistency and venue issues; require version identity and an actual scoped receipt before reusing verification. Do not silently update the state or the paper during review.
 
 ## Evidence And Findings
 
