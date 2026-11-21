@@ -2,6 +2,7 @@
 """Behavior and local HTTP boundary tests; never touch real user preferences."""
 
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import http.client
 import json
 import os
@@ -177,7 +178,7 @@ class StoreTests(unittest.TestCase):
         broken = b'{"version":1,"preferences":'
         self.user_path.write_bytes(broken)
         self.assert_error("malformed_stored_config", self.store.resolve)
-        self.assert_error("malformed_stored_config", self.store.save, "user", prefs.file_stamp(self.user_path), {"version": 1})
+        self.assert_error("malformed_stored_config", self.store.save, "user", hashlib.sha256(broken).hexdigest(), {"version": 1})
         self.assertEqual(self.user_path.read_bytes(), broken)
 
     def test_oversize_stored_file_is_bounded(self):

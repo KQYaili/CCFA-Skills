@@ -1,6 +1,7 @@
 """Filesystem regression tests for bounded manuscript patches (stdlib only)."""
 
 import copy
+import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -25,12 +26,12 @@ class ManuscriptPatchTests(unittest.TestCase):
     def packet(self, targets=None, dependencies=None):
         inventory = mp.inspect_manuscript(self.path)
         return {"schema_version": 1,
-                "manuscript": {"path": str(self.path), "version": inventory["version"]},
+                "manuscript": {"path": str(self.path), "sha256": inventory["sha256"]},
                 "targets": targets or [inventory["sections"][0]["id"]],
                 "sections": inventory["sections"], "dependencies": dependencies or []}
 
     def apply(self, packet, *edits):
-        return mp.apply_patch(packet, {"base_version": packet["manuscript"]["version"], "edits": list(edits)})
+        return mp.apply_patch(packet, {"base_sha256": packet["manuscript"]["sha256"], "edits": list(edits)})
 
     def rejected(self, packet, edits, pattern=None):
         before = self.path.read_bytes()
@@ -51,8 +52,8 @@ class ManuscriptPatchTests(unittest.TestCase):
         result = self.apply(packet, {"section_id": "方法", "before": "我们建模关系。", "after": "我们建模变量之间的关系。"})
         expected = mp._BOM + text.replace("我们建模关系。", "我们建模变量之间的关系。").encode("utf-8")
         self.assertEqual(self.path.read_bytes(), expected)
-        self.assertEqual(result["after_version"], mp._file_version(self.path))
-        self.assertEqual(result["before_version"], packet["manuscript"]["version"])
+        self.assertEqual(result["after_sha256"], hashlib.sha256(expected).hexdigest())
+        self.assertEqual(result["before_sha256"], packet["manuscript"]["sha256"])
         self.assertEqual(result["changed_sections"], ["方法"])
         self.assertTrue(result["changed"])
         self.assertEqual(set(self.root.iterdir()), {self.path})
@@ -94,7 +95,7 @@ class ManuscriptPatchTests(unittest.TestCase):
         current = self.packet()
         before = self.path.read_bytes()
         with self.assertRaisesRegex(mp.ManuscriptPatchError, "patch base"):
-            mp.apply_patch(current, {"base_version": "2000-01-01T00:00:00.000000+00:00 | 0 bytes", "edits": []})
+            mp.apply_patch(current, {"base_sha256": "0" * 64, "edits": []})
         self.assertEqual(self.path.read_bytes(), before)
 
     def test_unauthorized_cross_section_empty_and_ambiguous_matches(self):
@@ -132,7 +133,7 @@ class ManuscriptPatchTests(unittest.TestCase):
         self.write("# Main\nOriginal.\n")
         dependency = self.root / "table.csv"
         dependency.write_bytes(b"x,y\n1,2\n")
-        entry = {"id": "table", "path": dependency.name, "version": mp._file_version(dependency), "used_by": ["main", "figure-1"]}
+        entry = {"id": "table", "path": dependency.name, "sha256": hashlib.sha256(dependency.read_bytes()).hexdigest(), "used_by": ["main", "figure-1"]}
         packet = self.packet(dependencies=[entry])
         edit = {"section_id": "main", "before": "Original.", "after": "Updated."}
         dependency.write_bytes(b"x,y\n3,4\n")
@@ -155,23 +156,23 @@ class ManuscriptPatchTests(unittest.TestCase):
         self.write("# Main\nOriginal.\n")
         source = self.root / "source.md"
         source.write_bytes(b"source text")
-        version = mp._file_version(source)
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
         dependencies = [
-            {"id": "window-1", "path": str(source), "version": version, "used_by": ["main"]},
-            {"id": "window-2", "path": source.name, "version": version, "used_by": ["main"]},
+            {"id": "window-1", "path": str(source), "sha256": digest, "used_by": ["main"]},
+            {"id": "window-2", "path": source.name, "sha256": digest, "used_by": ["main"]},
         ]
         packet = self.packet(dependencies=dependencies)
         self.assertEqual(len(mp._dependencies(packet, self.path)), 1)
         self.apply(packet)
-        packet["dependencies"][1]["version"] = "2000-01-01T00:00:00.000000+00:00 | 0 bytes"
-        self.rejected(packet, [], "inconsistent source versions")
+        packet["dependencies"][1]["sha256"] = "0" * 64
+        self.rejected(packet, [], "inconsistent hashes")
 
-    def test_dependency_scope_limits_version_checks_and_unknown_scope_still_gates(self):
+    def test_dependency_scope_limits_hash_checks_and_unknown_scope_still_gates(self):
         self.write("# One\nalpha\n# Two\nbeta\n")
         source = self.root / "other-section.md"
         source.write_bytes(b"old source")
-        version = mp._file_version(source)
-        dependency = {"id": "other-source", "path": str(source), "version": version, "used_by": ["two"]}
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        dependency = {"id": "other-source", "path": str(source), "sha256": digest, "used_by": ["two"]}
         packet = self.packet(["one"], [dependency])
         source.write_bytes(b"updated other section source")
         result = self.apply(packet, {"section_id": "one", "before": "alpha", "after": "new alpha"})
@@ -182,14 +183,14 @@ class ManuscriptPatchTests(unittest.TestCase):
             with self.subTest(used_by=used_by):
                 self.rejected(packet, [], "dependency changed")
 
-    def test_shared_dependency_any_relevant_window_gates_version(self):
+    def test_shared_dependency_any_relevant_window_gates_hash(self):
         self.write("# One\nalpha\n# Two\nbeta\n")
         source = self.root / "shared-source.md"
         source.write_bytes(b"old")
-        version = mp._file_version(source)
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
         dependencies = [
-            {"id": "unrelated-window", "path": str(source), "version": version, "used_by": ["two"]},
-            {"id": "relevant-window", "path": str(source), "version": version, "used_by": ["one"]},
+            {"id": "unrelated-window", "path": str(source), "sha256": digest, "used_by": ["two"]},
+            {"id": "relevant-window", "path": str(source), "sha256": digest, "used_by": ["one"]},
         ]
         packet = self.packet(["one"], dependencies)
         source.write_bytes(b"new")
@@ -199,7 +200,7 @@ class ManuscriptPatchTests(unittest.TestCase):
         self.write("# One\nalpha\n# Two\nbeta\n")
         source = self.root / "other-section.md"
         source.write_bytes(b"source for section two")
-        dependency = {"id": "other-source", "path": str(source), "version": mp._file_version(source), "used_by": ["two"]}
+        dependency = {"id": "other-source", "path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "used_by": ["two"]}
         packet = self.packet(["one"], [dependency])
         source.unlink()
         self.assertTrue(self.apply(packet, {"section_id": "one", "before": "alpha", "after": "updated alpha"})["changed"])
@@ -233,7 +234,7 @@ class ManuscriptPatchTests(unittest.TestCase):
                 result = self.apply(packet, *edits)
                 self.assertFalse(result["changed"])
                 self.assertEqual(result["changed_sections"], [])
-                self.assertEqual(result["before_version"], result["after_version"])
+                self.assertEqual(result["before_sha256"], result["after_sha256"])
                 replace.assert_not_called()
         self.assertEqual(set(self.root.iterdir()), {self.path})
 
@@ -250,7 +251,7 @@ class ManuscriptPatchTests(unittest.TestCase):
         self.write("# Main\nOriginal.\n")
         dependency = self.root / "results.csv"
         dependency.write_bytes(b"old")
-        entry = {"id": "results", "path": str(dependency), "version": mp._file_version(dependency), "used_by": ["main"]}
+        entry = {"id": "results", "path": str(dependency), "sha256": hashlib.sha256(b"old").hexdigest(), "used_by": ["main"]}
         packet = self.packet(dependencies=[entry])
         check = mp._check_dependencies
         calls = 0
@@ -290,7 +291,7 @@ class ManuscriptPatchTests(unittest.TestCase):
             self.skipTest("symlinks unavailable for this user")
         with self.assertRaisesRegex(mp.ManuscriptPatchError, "symbolic links"):
             mp.inspect_manuscript(link)
-        packet = self.packet(dependencies=[{"id": "linked", "path": str(link), "version": mp._file_version(self.path), "used_by": ["main"]}])
+        packet = self.packet(dependencies=[{"id": "linked", "path": str(link), "sha256": hashlib.sha256(self.path.read_bytes()).hexdigest(), "used_by": ["main"]}])
         self.rejected(packet, [], "symbolic links")
 
     def test_symlink_detection_without_platform_privileges(self):

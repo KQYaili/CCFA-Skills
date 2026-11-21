@@ -4,18 +4,14 @@
 No paper, ccfa.yaml, preference, or experimental record is modified by validate/brief.
 """
 import argparse
+import hashlib
 import json
 from pathlib import Path
-from datetime import datetime, timezone
-
-
-def file_stamp(path):
-    info = Path(path).stat()
-    date = datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds")
-    return f"{date} | {info.st_size} bytes"
+import re
 import sys
 
 RECORD = "ccfa-scientific-argument"
+SHA = re.compile(r"[0-9a-f]{64}\Z")
 STAGES = {"unassessed", "exploratory", "confirmatory", "theoretical"}
 STATES = {"todo", "draft", "review", "frozen", "verified"}
 
@@ -70,30 +66,30 @@ def validate(data, manuscript=None):
         refs = item.get("evidence_refs")
         need(isinstance(refs, list) and all(isinstance(x, str) and x.strip() for x in refs),
              "evidence_refs must be a list of nonempty source anchors: " + ident)
-    current_version = None
+    current_hash = None
     if manuscript is not None:
         path = Path(manuscript)
         need(path.is_file(), "manuscript not found: " + str(path))
-        current_version = file_stamp(path)
+        current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
     for item in paragraphs:
         ident = item["id"]
         string(item.get("section_id"), "paragraph " + ident + ".section_id", nonempty=True)
         need(item.get("status") in STATES, "invalid paragraph status: " + ident)
-        source_version = item.get("manuscript_version")
-        need(source_version is None or (isinstance(source_version, str) and source_version.strip()),
-             "invalid manuscript_version: " + ident)
+        source_hash = item.get("manuscript_sha256")
+        need(source_hash is None or (isinstance(source_hash, str) and SHA.fullmatch(source_hash)),
+             "invalid manuscript_sha256: " + ident)
         if item["status"] == "verified":
-            need(source_version is not None, "verified paragraph requires manuscript_version: " + ident)
+            need(source_hash is not None, "verified paragraph requires manuscript_sha256: " + ident)
             receipt = obj(item.get("verification"), "verification for " + ident)
             string(receipt.get("scope"), "verification.scope for " + ident, nonempty=True)
             string(receipt.get("receipt"), "verification.receipt for " + ident, nonempty=True)
-            if current_version is not None:
-                need(current_version == source_version, "verified paragraph is stale: " + ident)
+            if current_hash is not None:
+                need(current_hash == source_hash, "verified paragraph is stale: " + ident)
     return {"valid": True, "paper_id": data["paper_id"],
             "ready_for_brief": bool(question.strip() and throughline.strip()),
             "hypotheses": len(hypotheses), "paragraphs": len(paragraphs),
             "unfilled_hypothesis_fields": pending,
-            "verification_version_checked": current_version is not None}
+            "verification_version_checked": current_hash is not None}
 
 
 def example(paper_id):
@@ -108,7 +104,7 @@ def cli(argv=None):
     init = commands.add_parser("init", help="Create blank state without overwriting an existing file")
     init.add_argument("--file", required=True)
     init.add_argument("--paper-id", required=True)
-    check = commands.add_parser("validate", help="Structural audit; optional readable manuscript version check")
+    check = commands.add_parser("validate", help="Structural audit; optional manuscript hash freshness check")
     check.add_argument("--file", required=True)
     check.add_argument("--manuscript")
     brief = commands.add_parser("brief", help="Print a compatible writing_runtime --brief JSON object")

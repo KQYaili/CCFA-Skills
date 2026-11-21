@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Filesystem regressions for exact, optional review reuse."""
+import hashlib
 import json
 from pathlib import Path
 import tempfile
 import unittest
 
-from manuscript_patch import _file_version
 from writing_review_cache import review_cache, review_key
 
 
@@ -18,13 +18,13 @@ class ReviewCacheTests(unittest.TestCase):
         self.manuscript.write_text("# Introduction\n科学问题与方法。\n", encoding="utf-8")
         self.source = self.root / "results.json"
         self.source.write_text('{"accuracy": 0.8}', encoding="utf-8")
-        def file_version(path):
-            return _file_version(path)
-        self.packet = {"schema_version": 1, "manuscript": {"path": str(self.manuscript), "version": file_version(self.manuscript)},
+        def digest(path):
+            return hashlib.sha256(path.read_bytes()).hexdigest()
+        self.packet = {"schema_version": 1, "manuscript": {"path": str(self.manuscript), "sha256": digest(self.manuscript)},
                        "targets": ["introduction"], "context": {"throughline": "One research question"},
                        "guidance": {"text": "Review the argument"},
                        "dependencies": [{"id": "results", "path": str(self.source),
-                                         "version": file_version(self.source), "used_by": ["introduction"]}]}
+                                         "sha256": digest(self.source), "used_by": ["introduction"]}]}
         self.cache = self.root / "review-cache.json"
         self.result = self.root / "review.md"
         self.result.write_text("检查引言论点与结果是否一致。\n", encoding="utf-8")
@@ -75,14 +75,14 @@ class ReviewCacheTests(unittest.TestCase):
         appendix = self.root / "appendix.csv"
         appendix.write_text("count,2", encoding="utf-8")
         dependency = {"id": "appendix", "path": str(appendix),
-                      "version": _file_version(appendix),
+                      "sha256": hashlib.sha256(appendix.read_bytes()).hexdigest(),
                       "used_by": ["appendix"]}
         self.packet["dependencies"].append(dependency)
         key = review_key(self.packet, "actual-model")
         self.complete()
         appendix.write_text("count,3", encoding="utf-8")
         self.assertTrue(self.call("lookup")["hit"])
-        dependency["version"] = _file_version(appendix)
+        dependency["sha256"] = hashlib.sha256(appendix.read_bytes()).hexdigest()
         self.assertEqual(review_key(self.packet, "actual-model"), key)
         self.assertTrue(self.call("lookup")["hit"])
         appendix.unlink()
@@ -103,7 +103,7 @@ class ReviewCacheTests(unittest.TestCase):
             review_cache("begin", self.packet, self.source, "actual-model")
         self.complete()
         self.source.write_text('{"accuracy": 0.4}', encoding="utf-8")
-        dependency["version"] = _file_version(self.source)
+        dependency["sha256"] = hashlib.sha256(self.source.read_bytes()).hexdigest()
         self.assertNotEqual(review_key(self.packet, "actual-model"), key)
         self.assertFalse(self.call("lookup")["hit"])
 

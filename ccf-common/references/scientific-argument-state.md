@@ -35,7 +35,7 @@ Use only for **ongoing multi-session research manuscripts** where scientific que
       "id": "intro-claim-1",
       "section_id": "introduction",
       "status": "draft",
-      "manuscript_version": null
+      "manuscript_sha256": null
     }
   ]
 }
@@ -43,9 +43,11 @@ Use only for **ongoing multi-session research manuscripts** where scientific que
 
 Empty hypothesis/paragraph arrays are valid. Unfilled fields are explicitly **unassessed**, not inferred. Hypothesis `evidence_stage` is one of `unassessed / exploratory / confirmatory / theoretical`: this records the *reported study category*, not proof that a result validates the hypothesis. The reference needs external verification; planned evidence is not observed evidence. Negative and mixed outcomes must remain usable.
 
-For verified paragraphs, provide a current **readable file modification-time and byte-size version** in `manuscript_version` plus `verification: {"scope": "<checked scope>", "receipt": "<actual audit/report anchor>"}`. This is a **versioned receipt for stated coverage**, not a global proof of correctness. Validate against `--manuscript` before reusing a previous verified status; an unchanged SHA supports version identity, not the sufficiency of the audit. Editing the paper makes prior receipts stale until rechecked. Freezing a paragraph means "do not casually rewrite", **not** "ignore factual errors".
+For verified paragraphs, provide a current **full-file SHA-256** in `manuscript_sha256` plus `verification: {"scope": "<checked scope>", "receipt": "<actual audit/report anchor>"}`. This is a **versioned receipt for stated coverage**, not a global proof of correctness. Validate against `--manuscript` before reusing a previous verified status; an unchanged SHA supports version identity, not the sufficiency of the audit. Editing the paper makes prior receipts stale until rechecked. Freezing a paragraph means "do not casually rewrite", **not** "ignore factual errors".
 
 ## Paragraph lifecycle
+
+To obtain the manuscript digest for a receipt, run the writer's [inspect command](../../ccf-paper-writer/references/writing-execution.md#prepare-only-the-material-needed) and copy its `sha256` field. Its UTC modification time and byte count help you recognize the file during a handoff.
 
 - `todo`: not written; no claim of missing evidence unless checked.
 - `draft`: working prose; ordinary authorized revisions are permitted.

@@ -31,7 +31,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.directory.parent, BUILD.resolve())
         self.repo = self.directory / "repository 中文"
         self.repo.mkdir()
-        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        subprocess.run(["git", "-c", "init.defaultBranch=fixture-main", "init", "-q", str(self.repo)], check=True)
         subprocess.run(["git", "-C", str(self.repo), "config", "core.autocrlf", "false"], check=True)
         for skill in SKILLS:
             self.put(skill+"/SKILL.md", "# "+skill+"\n")
@@ -83,7 +83,7 @@ class ReleaseTests(unittest.TestCase):
             sources[item["profile"]] = self.directory / ("extracted-"+version) / ("ccfa-skills-"+version+"-"+item["profile"])
         self.source, self.papers = sources["lean"], sources["papers"]
 
-    def test_both_profiles_share_version_manifest_and_exclude_private_paths(self):
+    def test_both_profiles_share_version_hash_manifest_and_exclude_private_paths(self):
         for source in (self.source, self.papers):
             _, manifest = support.load_release(source)
             self.assertEqual(manifest["version"], "0.12.0")
@@ -96,7 +96,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertTrue((self.papers / self.legacy_pdf).exists())
         self.assertTrue((self.source / "assets/visual-showcase/reference.svg").is_file())
         for report in self.reports:
-            self.assertTrue(support.file_version(self.output/report["file"]).endswith(" bytes"))
+            self.assertEqual(support.digest(self.output/report["file"]), report["sha256"])
 
     def test_clean_full_install_has_21_entries_resources_but_no_root_readme_or_pdf(self):
         result = installer.install(self.source, self.target)
@@ -134,9 +134,8 @@ class ReleaseTests(unittest.TestCase):
         self.make_release()
         _, manifest = support.load_release(self.source)
         self.assertNotIn("private-notes.md", {e["path"] for e in manifest["files"]})
-        self.assertTrue(isinstance(manifest["source"]["branch"], str))
-        self.assertTrue(manifest["source"]["dirty"])
-        self.assertEqual(manifest["source"]["file_selection"], "tracked")
+        self.assertEqual(manifest["source"], {"commit": None, "branch": "fixture-main", "dirty": True,
+                                              "file_selection": "tracked"})
         reports = builder.build(self.repo, self.output, tracked_only=False)
         with zipfile.ZipFile(self.output/reports[0]["file"]) as archive:
             self.assertTrue(any(name.endswith("/private-notes.md") for name in archive.namelist()))
@@ -150,9 +149,13 @@ class ReleaseTests(unittest.TestCase):
         expected = subprocess.check_output(["git", "-C", str(self.repo), "rev-parse", "HEAD"], text=True).strip()
         self.make_release()
         _, manifest = support.load_release(self.source)
-        self.assertFalse(manifest["source"]["dirty"])
-        self.assertTrue(isinstance(manifest["source"]["branch"], str))
-        self.assertEqual(manifest["source"]["file_selection"], "tracked")
+        self.assertEqual(manifest["source"], {"commit": expected, "branch": "fixture-main", "dirty": False,
+                                              "file_selection": "tracked"})
+        subprocess.run(["git", "-C", str(self.repo), "checkout", "-q", "--detach", expected], check=True)
+        self.make_release()
+        _, detached = support.load_release(self.source)
+        self.assertIsNone(detached["source"]["branch"])
+        self.assertEqual(detached["source"]["commit"], expected)
 
     def _interrupt_update(self, fresh=False):
         if not fresh:
@@ -187,7 +190,7 @@ class ReleaseTests(unittest.TestCase):
                 receipt = support.read_json(self.target/support.RECEIPT)
                 self.assertNotIn("pending", receipt)
                 self.assertEqual(receipt["version"], "0.12.1")
-                self.assertTrue(all(support.file_version(self.target/name) == entry["file_version"] for name, entry in receipt["files"].items()))
+                self.assertTrue(all(support.digest(self.target/name) == entry["sha256"] for name, entry in receipt["files"].items()))
                 self.assertFalse(list(self.target.rglob(".ccfa-install-*.tmp")))
                 # Restore the original fixture so the next subcase is a real update.
                 if fresh:
@@ -274,20 +277,16 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError): installer.install(self.source, other)
         self.assertFalse((other/support.RECEIPT).exists())
 
-    def test_manifest_size_mismatch_and_invalid_metadata_rejected(self):
+    def test_corrupt_file_or_manifest_is_rejected_before_target_creation(self):
         target = self.source/"ccf-common/SKILL.md"
         original = target.read_bytes()
-        target.write_bytes(b"tampered-data-with-different-size")
-        with self.assertRaisesRegex(ValueError, "manifest"):
-            installer.install(self.source, self.target)
-        self.assertFalse(self.target.exists())
-        target.write_bytes(original)
+        target.write_bytes(original.replace(b"ccf-common", b"CCF-common", 1))
+        with self.assertRaisesRegex(ValueError, "manifest"): installer.install(self.source, self.target)
+        self.assertFalse(self.target.exists()); target.write_bytes(original)
         path = self.source/support.MANIFEST
-        value = support.read_json(path)
-        value["files"][0]["bytes"] = -1
+        value = support.read_json(path); value["files"][0]["sha256"]="bad"
         path.write_text(json.dumps(value), encoding="utf-8")
-        with self.assertRaises(ValueError):
-            installer.install(self.source, self.target)
+        with self.assertRaises(ValueError): installer.install(self.source, self.target)
         self.assertFalse(self.target.exists())
 
     def test_missing_sibling_resource_and_mismatched_papers_are_rejected(self):

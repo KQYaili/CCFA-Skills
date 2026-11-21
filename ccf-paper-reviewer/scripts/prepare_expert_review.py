@@ -8,7 +8,7 @@ native PDF and vision workflows remain available through the reviewing owner.
 """
 import argparse
 import copy
-from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -28,18 +28,13 @@ def _decision(status, reason, owner="ccf-paper-reviewer"):
             "owner": owner, "executed": False, "primary_review_continues": True}
 
 
-def _version(path):
-    info = Path(path).stat()
-    return f"{datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec='microseconds')} | {info.st_size} bytes"
-
-
 def _source(path, role):
     path = Path(path).expanduser().resolve()
     raw = path.read_bytes()
     text = raw.decode("utf-8-sig")
     if not text.strip():
         raise ValueError("Empty review input: " + str(path))
-    return {"role": role, "path": str(path), "version": _version(path),
+    return {"role": role, "path": str(path), "sha256": hashlib.sha256(raw).hexdigest(),
             "text": text, "coverage": "complete supplied text file"}
 
 
@@ -53,7 +48,7 @@ def _prompt(language):
         raise ValueError("Missing or ambiguous plain expert prompt: " + language)
     text = matches[0].strip()
     return {"language": language, "text": text,
-            "path": str(path), "version": _version(path)}
+            "path": str(path), "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()}
 
 
 def _optional_text(value, name):
@@ -84,7 +79,7 @@ def _focus_locations(values, documents):
         if path not in sources:
             raise ValueError("A focus location must refer to a supplied review document")
         source = sources[path]
-        location = {"path": path, "version": source["version"]}
+        location = {"path": path, "sha256": source["sha256"]}
         anchor = _optional_text(item.get("anchor"), "focus anchor")
         if anchor:
             location["anchor"] = anchor
@@ -110,7 +105,7 @@ def _family_policies(extra_files):
         if source["path"] in seen:
             raise ValueError("Declare an applied policy file once")
         seen.add(source["path"])
-        identities.append({"id": identity, "path": source["path"], "version": source["version"]})
+        identities.append({"id": identity, "path": source["path"], "sha256": source["sha256"]})
     return identities
 
 
@@ -125,13 +120,14 @@ def _execution_spec(runtime, effort, options):
     return {"runtime": runtime, "effort": effort, "options": options}
 
 
-def _request_identity(request):
+def _request_fingerprint(request):
     signature = copy.deepcopy(request)
     # These paths locate instructions; only their effective text/identity is guidance.
     signature["guidance"].pop("path", None)
     for policy in signature["policies"]:
         policy.pop("path", None)
-    return signature
+    return hashlib.sha256(json.dumps(signature, ensure_ascii=False, sort_keys=True,
+                                     separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
 
 
 def prepare_expert_review(manuscript, *, mode="scientific", independent_review="off",
@@ -222,9 +218,9 @@ def prepare_expert_review(manuscript, *, mode="scientific", independent_review="
     input_chars = len(json.dumps(request, ensure_ascii=False, allow_nan=False))
     if max_input_chars is not None and input_chars > max_input_chars:
         return _decision("unavailable", "The complete expert request exceeds its declared character allowance; choose an authorized scope or allowance rather than silently truncating it.")
-    request_identity = _request_identity(request)
+    fingerprint = _request_fingerprint(request)
     return {**_decision("ready", "One independent expert request prepared; native host execution is still required."),
-            "request_identity": request_identity, "request": request,
+            "fingerprint": fingerprint, "request": request,
             "dispatch": {"fresh_history": True, "include_lead_findings": False,
                          "initial_expert_passes": 1, "apply_family_preflights": True,
                          "verify_actual_model_and_completion": True},
@@ -246,10 +242,10 @@ def assess_review_reuse(prepared, completed):
         return result(False, "No ready expert request to match")
     request = prepared.get("request")
     try:
-        request_identity = _request_identity(request)
+        fingerprint = _request_fingerprint(request)
     except (AttributeError, KeyError, TypeError, ValueError):
         return result(False, "Prepared request identity is missing or invalid")
-    if prepared.get("request_identity") != request_identity:
+    if prepared.get("fingerprint") != fingerprint:
         return result(False, "Prepared request identity is missing or stale")
     spec = request.get("execution_spec")
     if not isinstance(spec, dict):
@@ -260,14 +256,14 @@ def assess_review_reuse(prepared, completed):
         return result(False, "A pending, interrupted or unexecuted request is not a completed review")
     if not isinstance(completed.get("response"), str) or not completed["response"].strip():
         return result(False, "The retained expert response is unavailable")
-    if completed.get("request_identity") != prepared["request_identity"]:
+    if completed.get("fingerprint") != prepared["fingerprint"]:
         return result(False, "Scientific input, question or effective guidance changed")
     actual = completed.get("execution")
     if not isinstance(actual, dict) or actual.get("model") != request["model"] or actual.get("fresh_context") is not True:
         return result(False, "Actual model or fresh-context provenance does not match")
     if any(actual.get(key) != spec[key] for key in ("runtime", "effort", "options")):
         return result(False, "Actual runtime, effort or options do not match")
-    expected_policies = [{"id": item["id"], "version": item["version"]} for item in request["policies"]]
+    expected_policies = [{"id": item["id"], "sha256": item["sha256"]} for item in request["policies"]]
     if actual.get("policies") != expected_policies:
         return result(False, "The actually applied policy identities do not match")
     coverage = completed.get("coverage")
@@ -275,17 +271,17 @@ def assess_review_reuse(prepared, completed):
         return result(False, "Actual inspected source coverage is missing")
     try:
         for document in request["documents"] + request["policies"]:
-            if _source(document["path"], "current-identity")["version"] != document["version"]:
+            if _source(document["path"], "current-identity")["sha256"] != document["sha256"]:
                 return result(False, "A scientific source or applied policy changed since preparation")
-        if _prompt(request["guidance"]["language"])["version"] != request["guidance"]["version"]:
+        if _prompt(request["guidance"]["language"])["sha256"] != request["guidance"]["sha256"]:
             return result(False, "The selected prompt changed since preparation")
     except (OSError, UnicodeError, ValueError, KeyError, TypeError):
         return result(False, "A required current source or instruction cannot be checked")
-    sources = {(item["path"], item["version"]): item for item in coverage
-               if isinstance(item, dict) and isinstance(item.get("path"), str) and isinstance(item.get("version"), str)}
+    sources = {(item["path"], item["sha256"]): item for item in coverage
+               if isinstance(item, dict) and isinstance(item.get("path"), str) and isinstance(item.get("sha256"), str)}
     locations = request["task"].get("focus_locations", [])
     for document in request["documents"]:
-        inspected = sources.get((document["path"], document["version"]))
+        inspected = sources.get((document["path"], document["sha256"]))
         if not inspected:
             return result(False, "A required source/version was not covered")
         if inspected.get("complete") is True:

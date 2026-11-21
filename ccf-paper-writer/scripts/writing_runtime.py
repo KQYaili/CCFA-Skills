@@ -6,6 +6,7 @@ Paths in a source list are relative to that list's directory; other paths are
 relative to the caller. Inspect each manuscript to obtain its actual section IDs.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -15,7 +16,7 @@ import secrets
 import sys
 import tempfile
 
-from manuscript_patch import inspect_manuscript, apply_patch, _file_version
+from manuscript_patch import inspect_manuscript, apply_patch
 from writing_context import prepare_context, assess_impact
 from writing_review_cache import review_cache
 
@@ -28,7 +29,7 @@ def _json_snapshot(path):
     path = Path(path).resolve()
     raw = path.read_bytes()
     return json.loads(raw.decode("utf-8-sig")), {
-        "path": str(path), "version": _file_version(path)}
+        "path": str(path), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
 def _guidance(mode):
@@ -41,7 +42,7 @@ def _guidance(mode):
     if len(matches) != 1 or not matches[0].strip():
         raise ValueError("Missing or ambiguous writing prompt: " + mode)
     return {"mode": mode, "text": matches[0].strip(), "path": str(path),
-            "version": _file_version(path)}
+            "sha256": hashlib.sha256(raw).hexdigest()}
 
 
 def _pending_mode(args):
@@ -139,10 +140,10 @@ def parser():
     prepare.add_argument("--project", type=Path, help="Explicit project root for optional preference overrides")
     preview = commands.add_parser("preview", help="Validate the exact scoped patch and print a read-only unified diff")
     preview.add_argument("--packet", required=True)
-    preview.add_argument("--patch", required=True, help="Same readable-version JSON as apply")
+    preview.add_argument("--patch", required=True, help="Same hash-bound JSON as apply")
     apply = commands.add_parser("apply", help="Apply literal edits only to the prepared version and sections")
     apply.add_argument("--packet", required=True)
-    apply.add_argument("--patch", required=True, help="JSON: base_version, edits[{section_id,before,after}]")
+    apply.add_argument("--patch", required=True, help="JSON: base_sha256, edits[{section_id,before,after}]")
     impact = commands.add_parser("impact", help="Report changed inputs and mapped dependent section/figure IDs")
     impact.add_argument("--packet", required=True)
     cache = commands.add_parser("review-cache", help="Optional receipt; never starts or retries a review")
@@ -182,21 +183,21 @@ def run(args):
         packet["operation"] = "review" if args.mode == "consistency" else "write"
         packet["guidance"] = guidance
         if packet["operation"] == "write":
-            packet["patch_schema"] = {"base_version": packet["manuscript"]["version"],
+            packet["patch_schema"] = {"base_sha256": packet["manuscript"]["sha256"],
                 "edits": [{"section_id": "<prepared target ID>",
                            "before": "<unique exact original passage>", "after": "<replacement>"}]}
         packet["dependencies"].append({"id": "ccfa-writing-guidance", "path": guidance["path"],
-                                        "version": guidance["version"], "used_by": packet["targets"]})
+                                        "sha256": guidance["sha256"], "used_by": packet["targets"]})
         for identity, name in [(brief_identity, "ccfa-writing-brief"), (source_map, "ccfa-writing-source-map")]:
             if identity:
                 packet["dependencies"].append({"id": name, **identity, "used_by": packet["targets"]})
         for item in [packet["manuscript"], *packet["dependencies"]]:
-            if _file_version(item["path"]) != item["version"]:
+            if hashlib.sha256(Path(item["path"]).read_bytes()).hexdigest() != item["sha256"]:
                 raise ValueError("Input changed while preparing context; read the current version: " + item["path"])
         if args.output:
             forbidden = [packet["manuscript"]["path"], *(s["path"] for s in packet["dependencies"])]
             _write_packet(packet, args.output, forbidden)
-            return {"packet": str(Path(args.output).resolve()), "manuscript_version": packet["manuscript"]["version"],
+            return {"packet": str(Path(args.output).resolve()), "manuscript_sha256": packet["manuscript"]["sha256"],
                     "targets": packet["targets"], "mode": args.mode}
         return packet
     packet = read_json(args.packet)

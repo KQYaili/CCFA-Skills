@@ -1,8 +1,8 @@
 """Shared, standard-library release paths and resource selection."""
 from __future__ import annotations
 
+import hashlib
 import json
-from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 import re
 import stat
@@ -59,23 +59,12 @@ def no_links(path):
     return path
 
 
-def file_version(path):
-    info = Path(path).stat()
-    date = datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds")
-    return f"{date} | {info.st_size} bytes"
-
-
-def same_bytes(first, second):
-    first, second = Path(first), Path(second)
-    if not first.is_file() or not second.is_file() or first.stat().st_size != second.stat().st_size:
-        return False
-    with first.open("rb") as a, second.open("rb") as b:
-        while True:
-            left, right = a.read(1024 * 1024), b.read(1024 * 1024)
-            if left != right:
-                return False
-            if not left:
-                return True
+def digest(path):
+    result = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            result.update(block)
+    return result.hexdigest()
 
 
 def read_json(path):
@@ -113,15 +102,17 @@ def load_release(source):
         raise ValueError("Release manifest has no files")
     found = {}
     for entry in files:
-        if not isinstance(entry, dict) or set(entry) != {"path", "bytes"}:
+        if not isinstance(entry, dict) or set(entry) != {"path", "sha256", "bytes"}:
             raise ValueError("Invalid release file entry")
         rel = relative_path(entry["path"])
         if not public_path(rel) or rel == MANIFEST or rel.casefold() in found:
             raise ValueError("Private or duplicate release path: " + rel)
+        if not isinstance(entry["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]):
+            raise ValueError("Invalid file hash: " + rel)
         if type(entry["bytes"]) is not int or entry["bytes"] < 0:
             raise ValueError("Invalid file size: " + rel)
         path = no_links(source / rel)
-        if not path.is_file() or path.stat().st_size != entry["bytes"]:
+        if not path.is_file() or path.stat().st_size != entry["bytes"] or digest(path) != entry["sha256"]:
             raise ValueError("Release content does not match its manifest: " + rel)
         if manifest["profile"] == "lean" and is_paper_pdf(rel):
             raise ValueError("A lean profile cannot contain complete writing PDFs")

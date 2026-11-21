@@ -10,24 +10,13 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import copy
+import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
 import os
 from pathlib import Path
 import secrets
-from datetime import datetime, timezone
-
-
-def file_stamp(path):
-    info = Path(path).stat()
-    date = datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds")
-    return f"{date} | {info.st_size} bytes"
-
-
-def is_stamp(value):
-    return isinstance(value, str) and " | " in value and value.endswith(" bytes")
-
 import sys
 import tempfile
 import threading
@@ -177,7 +166,7 @@ class PreferenceStore:
             raise PreferenceError(
                 "malformed_stored_config", "Invalid stored configuration at " + str(path) + ": " + str(exc), 422
             ) from exc
-        return config, file_stamp(path)
+        return config, hashlib.sha256(data).hexdigest()
 
     def _snapshot(self, scope):
         self._path(scope)
@@ -243,7 +232,9 @@ class PreferenceStore:
     def save(self, scope, revision, config):
         path = self._path(scope)
         config = validate_config(config)
-        if type(revision) is not str or not (revision == "missing" or is_stamp(revision)):
+        if type(revision) is not str or not (revision == "missing" or (
+            len(revision) == 64 and all(char in "0123456789abcdef" for char in revision)
+        )):
             raise PreferenceError("invalid_config", "A valid revision from the last read is required.")
         encoded = (json.dumps(config, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         with self.lock:

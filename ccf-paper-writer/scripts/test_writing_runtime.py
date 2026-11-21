@@ -53,7 +53,10 @@ class WritingRuntimeTests(unittest.TestCase):
         return json.loads(self.packet.read_text(encoding="utf-8"))
 
     def test_inspect_returns_navigation_not_full_text(self):
+        os.utime(self.paper, (1609459200, 1609459200))
         result = self.cli("inspect", "--manuscript", self.paper)
+        self.assertEqual(result["revision"], {"modified_utc": "2021-01-01T00:00:00.000000+00:00",
+                                             "bytes": len(self.paper.read_bytes())})
         self.assertEqual([s["id"] for s in result["sections"]], ["motivation", "method", "results", "discussion"])
         self.assertTrue(all("text" not in s for s in result["sections"]))
 
@@ -67,7 +70,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertIn("模型保留分组特征", json.dumps(packet["context"], ensure_ascii=False))
         self.assertIn("局部差异与性能变化", json.dumps(packet["context"], ensure_ascii=False))
         self.assertTrue(any(d["path"] == str(self.data) for d in packet["dependencies"]))
-        self.assertEqual(packet["patch_schema"]["base_version"], packet["manuscript"]["version"])
+        self.assertEqual(packet["patch_schema"]["base_sha256"], packet["manuscript"]["sha256"])
 
     def test_safe_patch_preserves_other_sections_bom_and_crlf(self):
         packet = self.prepare()
@@ -75,7 +78,7 @@ class WritingRuntimeTests(unittest.TestCase):
         patch = self.root / "patch.json"
         before = "The grouped model reaches 82.0% accuracy."
         after = "Retaining grouped features raises accuracy from 79.0% to 82.0%."
-        self.write(patch, {"base_version": packet["manuscript"]["version"],
+        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"],
                            "edits": [{"section_id": "results", "before": before, "after": after}]})
         result = self.cli("apply", "--packet", self.packet, "--patch", patch)
         self.assertEqual(result["changed_sections"], ["results"])
@@ -87,7 +90,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertEqual(packet["operation"], "review")
         self.assertNotIn("patch_schema", packet)
         patch = self.root / "patch.json"
-        self.write(patch, {"base_version": packet["manuscript"]["version"], "edits": []})
+        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"], "edits": []})
         self.cli("apply", "--packet", self.packet, "--patch", patch, ok=False)
 
     def test_source_change_blocks_edit_and_reports_section_figure_impact(self):
@@ -99,7 +102,7 @@ class WritingRuntimeTests(unittest.TestCase):
         self.assertIn("figure:main", serialized)
         self.assertIn("results", serialized)
         patch = self.root / "patch.json"
-        self.write(patch, {"base_version": packet["manuscript"]["version"], "edits": []})
+        self.write(patch, {"base_sha256": packet["manuscript"]["sha256"], "edits": []})
         self.cli("apply", "--packet", self.packet, "--patch", patch, ok=False)
 
     def test_packet_update_in_place_and_refuse_overwriting_inputs(self):

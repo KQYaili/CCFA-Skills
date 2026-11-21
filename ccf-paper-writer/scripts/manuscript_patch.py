@@ -1,4 +1,4 @@
-"""UTF-8 manuscript inventory and version-stamped, section-limited text patches.
+"""UTF-8 manuscript inventory and hash-bound, section-limited text patches.
 
 This module has no CLI and executes no manuscript code. Offsets count Unicode
 characters after removing an optional UTF-8 BOM; newline characters are not
@@ -21,8 +21,9 @@ users of this module; it is not a filesystem-wide lock against other editors.
 from __future__ import annotations
 
 import difflib
+import hashlib
+import io
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 import re
 import secrets
@@ -30,6 +31,7 @@ import stat
 import tempfile
 import unicodedata
 from contextlib import contextmanager
+from datetime import datetime, timezone
 
 
 class ManuscriptPatchError(ValueError):
@@ -37,21 +39,20 @@ class ManuscriptPatchError(ValueError):
 
 
 _BOM = b"\xef\xbb\xbf"
+_SHA256 = re.compile(r"[0-9a-fA-F]{64}\Z")
 _FORMATS = {".md", ".markdown", ".tex"}
 _LATEX_HEAD = re.compile(r"\\(chapter|section|subsection|subsubsection)(?![A-Za-z@])")
 _VERBATIM = re.compile(r"\\begin\s*\{(verbatim\*?|Verbatim|lstlisting|minted)\}")
 
 
-def _file_version(path):
-    info = Path(path).stat()
-    modified = datetime.fromtimestamp(info.st_mtime, timezone.utc)
-    return f"{modified.isoformat(timespec='microseconds')} | {info.st_size} bytes"
+def _digest(data):
+    return hashlib.sha256(data).hexdigest()
 
 
-def _version(value, name):
-    if not isinstance(value, str) or " | " not in value or not value.endswith(" bytes"):
-        raise ManuscriptPatchError(f"{name} requires a readable modification-time and byte-size version")
-    return value
+def _hash(value, name):
+    if not isinstance(value, str) or not _SHA256.fullmatch(value):
+        raise ManuscriptPatchError(f"{name} must be a SHA-256 hex digest")
+    return value.lower()
 
 
 def _plain_path(value, base=None, require_file=True):
@@ -74,11 +75,15 @@ def _plain_path(value, base=None, require_file=True):
 
 def _read(path):
     try:
-        data = path.read_bytes()
+        with path.open("rb") as stream:
+            data = stream.read()
+            modified = os.fstat(stream.fileno()).st_mtime
         text = (data[len(_BOM):] if data.startswith(_BOM) else data).decode("utf-8")
     except (OSError, UnicodeError) as exc:
         raise ManuscriptPatchError(f"cannot read strict UTF-8 manuscript: {path}: {exc}") from exc
-    return data, text
+    revision = {"modified_utc": datetime.fromtimestamp(modified, timezone.utc).isoformat(timespec="microseconds"),
+                "bytes": len(data)}
+    return data, text, revision
 
 
 def _markdown_headings(text):
@@ -236,14 +241,14 @@ def _inventory(path, data, text):
     for index, (start, title, section_id) in enumerate(points):
         end = points[index + 1][0] if index + 1 < len(points) else len(text)
         sections.append({"id": section_id, "heading": title, "start": start, "end": end, "text": text[start:end]})
-    return {"path": str(path), "version": _file_version(path), "sections": sections}
+    return {"path": str(path), "sha256": _digest(data), "sections": sections}
 
 
 def inspect_manuscript(path):
     """Return a strict UTF-8 inventory; offsets exclude an optional BOM."""
     path = _plain_path(path)
-    data, text = _read(path)
-    return _inventory(path, data, text)
+    data, text, revision = _read(path)
+    return {**_inventory(path, data, text), "revision": revision}
 
 
 def _strings(value, name, allow_empty=False):
@@ -269,10 +274,10 @@ def _dependencies(packet, manuscript, targets=None):
         if entry["id"] in ids or path == manuscript:
             raise ManuscriptPatchError("dependency IDs must be unique and dependency paths distinct from manuscript")
         ids.add(entry["id"])
-        expected = _version(entry.get("version"), "dependency.version")
+        expected = _hash(entry.get("sha256"), "dependency.sha256")
         if key in paths:
             if paths[key][1] != expected:
-                raise ManuscriptPatchError("dependencies for the same path have inconsistent source versions")
+                raise ManuscriptPatchError("dependencies for the same path have inconsistent hashes")
             paths[key][2] = paths[key][2] or active
             continue
         paths[key] = [path, expected, active]
@@ -283,7 +288,7 @@ def _check_dependencies(dependencies):
     for path, expected in dependencies:
         _plain_path(path)
         try:
-            actual = _file_version(path)
+            actual = _digest(path.read_bytes())
         except OSError as exc:
             raise ManuscriptPatchError(f"cannot read dependency: {path}: {exc}") from exc
         if actual != expected:
@@ -339,13 +344,14 @@ def apply_patch(packet, patch, dry_run=False):
     Relative dependency paths are relative to the manuscript's directory. An
     optional ``sections`` list can contain all or selected inventory entries;
     supplied fields are checked, but freshly read sections determine scope.
-    Dependency source versions gate edits when used_by intersects targets or is empty
+    Dependency hashes gate edits when used_by intersects targets or is empty
     (unknown scope). Other declared dependencies retain structural/path-link
     checks but may be missing; unrelated source removal does not block a patch.
     Cross-section and figure-to-section relationships must be supplied by the
     caller; they are not inferred here. operation='review' packets are read-only.
-    Returns before_version, after_version, changed_sections (document order), and
-    changed. dry_run adds a unified_diff field and never changes the manuscript.
+    Returns before_sha256, after_sha256, changed_sections (document order),
+    changed, the observed before_revision and the resulting byte count.
+    dry_run adds a unified_diff field and never changes the manuscript.
     An empty edit list or literal no-op does not replace the manuscript.
     """
     if not isinstance(packet, dict) or type(packet.get("schema_version")) is not int or packet["schema_version"] != 1:
@@ -358,9 +364,9 @@ def apply_patch(packet, patch, dry_run=False):
     if not isinstance(manuscript, dict):
         raise ManuscriptPatchError("packet.manuscript must be an object")
     path = _plain_path(manuscript.get("path"))
-    expected = _version(manuscript.get("version"), "manuscript.version")
-    if not isinstance(patch, dict) or _version(patch.get("base_version"), "patch.base_version") != expected:
-        raise ManuscriptPatchError("patch base does not match packet manuscript version")
+    expected = _hash(manuscript.get("sha256"), "manuscript.sha256")
+    if not isinstance(patch, dict) or _hash(patch.get("base_sha256"), "patch.base_sha256") != expected:
+        raise ManuscriptPatchError("patch base does not match packet manuscript hash")
     targets = _strings(packet.get("targets"), "targets")
     edits = patch.get("edits")
     if not isinstance(edits, list):
@@ -368,10 +374,10 @@ def apply_patch(packet, patch, dry_run=False):
     dependencies = _dependencies(packet, path, targets)
     with _exclusive_lock(path):
         _plain_path(path)
-        data, text = _read(path)
-        if _file_version(path) != expected:
+        data, original_text, before_revision = _read(path)
+        if _digest(data) != expected:
             raise ManuscriptPatchError("manuscript changed since packet creation")
-        inventory = _inventory(path, data, text)
+        inventory = _inventory(path, data, original_text)
         sections = {entry["id"]: entry for entry in inventory["sections"]}
         if any(target not in sections for target in targets):
             raise ManuscriptPatchError("target section does not exist in current manuscript")
@@ -400,24 +406,28 @@ def apply_patch(packet, patch, dry_run=False):
             if left[1] > right[0]:
                 raise ManuscriptPatchError("overlapping edits are not allowed")
         changed_ids = {item[3] for item in replacements if item[4]}
+        text = original_text
         for start, end, after, _, _ in reversed(replacements):
             text = text[:start] + after + text[end:]
         result_data = (_BOM if data.startswith(_BOM) else b"") + text.encode("utf-8")
-        result_version = f"planned | {len(result_data)} bytes"
-        result = {"before_version": expected, "after_version": result_version,
+        result_hash = _digest(result_data)
+        result = {"before_sha256": expected, "after_sha256": result_hash,
+                  "before_revision": before_revision, "after_bytes": len(result_data),
                   "changed_sections": [entry["id"] for entry in inventory["sections"] if entry["id"] in changed_ids],
                   "changed": result_data != data}
         if not result["changed"]:
             result["changed_sections"] = []
-            result["after_version"] = expected
             if dry_run:
                 result["unified_diff"] = ""
             return result
         if dry_run:
-            original_text = _read(path)[1]
-            result["unified_diff"] = "".join(difflib.unified_diff(
-                original_text.splitlines(keepends=True), text.splitlines(keepends=True),
-                fromfile="a/" + path.name, tofile="b/" + path.name))
+            # Render from the validated bytes, even when another editor has the file open.
+            lines = difflib.unified_diff(
+                io.StringIO(original_text).readlines(), io.StringIO(text).readlines(),
+                fromfile="a/" + path.name, tofile="b/" + path.name)
+            result["unified_diff"] = "".join(
+                line if line.endswith("\n") else line + "\n\\ No newline at end of file\n"
+                for line in lines)
             return result
         temporary = None
         try:
@@ -428,11 +438,10 @@ def apply_patch(packet, patch, dry_run=False):
                 os.fsync(stream.fileno())
             os.chmod(temporary, stat.S_IMODE(path.stat().st_mode))
             _plain_path(path)
-            if _file_version(path) != expected:
+            if _digest(path.read_bytes()) != expected:
                 raise ManuscriptPatchError("manuscript changed while patch was prepared")
             _check_dependencies(dependencies)
             os.replace(temporary, path)
-            result["after_version"] = _file_version(path)
             temporary = None
         finally:
             if temporary is not None:

@@ -13,7 +13,7 @@ python -B "<new-lean-dir>/tools/install_release.py" --source "<new-lean-dir>" --
 
 安装器读取自己的 `.ccfa-release-receipt.json`，只更新仍与旧安装哈希一致的文件；个人修改会在复制前停止。额外文件、偏好与上游已删除的旧文件继续保留，需你核对后自行处理。不存在强制覆盖或自动清理。只更新子集时继续使用相同的 `--skill` 列表；其他已装技能不会被悄悄卸载。
 
-完整范例 PDF 通过同版 papers 包显式添加，不自动下载；旧 PDF 也不自动删除。原文 Markdown、范例卡、模板与图例仍在 lean 中。包内文件清单、部分安装和补充 PDF 用法见[安装矩阵](../INSTALLATION_MATRIX.zh-CN.md#轻量-release-安装推荐)。首次接管手动或 npx 安装时，完全相同的文件可以登记；有差异的文件先合并，避免覆盖个人调整。release 安装不由 `npx skills update` 管理。
+完整范例 PDF 通过同版 papers 包显式添加，不自动下载；旧 PDF 也不自动删除。原文 Markdown、范例卡、模板与图例仍在 lean 中。包的 SHA-256、部分安装和补充 PDF 用法见[安装矩阵](../INSTALLATION_MATRIX.zh-CN.md#轻量-release-安装推荐)。首次接管手动或 npx 安装时，完全相同的文件可以登记；有差异的文件先合并，避免覆盖个人调整。release 安装不由 `npx skills update` 管理。
 
 ## npx/Git 完整源码的更新命令
 
