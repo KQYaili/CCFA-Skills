@@ -1,4 +1,3 @@
-from manuscript_patch import _file_version
 #!/usr/bin/env python3
 """Filesystem regressions for exact, optional review reuse."""
 import json
@@ -6,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from manuscript_patch import _file_version
 from writing_review_cache import review_cache, review_key
 
 
