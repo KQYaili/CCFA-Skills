@@ -16,7 +16,18 @@ import mimetypes
 import os
 from pathlib import Path
 import secrets
-from readable_versions import file_stamp, is_stamp
+from datetime import datetime, timezone
+
+
+def file_stamp(path):
+    info = Path(path).stat()
+    date = datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds")
+    return f"{date} | {info.st_size} bytes"
+
+
+def is_stamp(value):
+    return isinstance(value, str) and " | " in value and value.endswith(" bytes")
+
 import sys
 import tempfile
 import threading
