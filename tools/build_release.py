@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -12,7 +11,7 @@ import sys
 import tempfile
 import zipfile
 
-from release_support import MANIFEST, digest, is_paper_pdf, no_links, public_path, read_json
+from release_support import MANIFEST, file_version, is_paper_pdf, no_links, public_path, read_json
 
 
 def build(root, output, tracked_only=True):
@@ -25,10 +24,10 @@ def build(root, output, tracked_only=True):
     if not tracked_only:
         command += ["-o", "--exclude-standard"]
     names = subprocess.check_output(command).decode("utf-8").split("\0")
-    head = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "HEAD"],
-                          capture_output=True, text=True, encoding="utf-8")
+    branch_info = subprocess.run(["git", "-C", str(root), "branch", "--show-current"],
+                                  capture_output=True, text=True, encoding="utf-8")
     source_identity = {
-        "commit": head.stdout.strip() if head.returncode == 0 else None,
+        "branch": branch_info.stdout.strip() if branch_info.returncode == 0 else "unknown",
         "dirty": bool(subprocess.check_output(["git", "-C", str(root), "status", "--porcelain", "--untracked-files=normal"])),
         "file_selection": "tracked" if tracked_only else "tracked-and-untracked",
     }
@@ -48,7 +47,7 @@ def build(root, output, tracked_only=True):
         controls = {"tools/install_release.py", "tools/release_support.py", "LICENSE"}
         chosen = [name for name in files if (is_paper_pdf(name) == (profile == "papers"))
                   or (profile == "papers" and name in controls)]
-        entries = [{"path": name, "sha256": digest(root / name), "bytes": (root / name).stat().st_size} for name in chosen]
+        entries = [{"path": name, "bytes": (root / name).stat().st_size} for name in chosen]
         manifest = {"schema_version": 1, "release_id": "ccfa-skills-"+codex, "version": codex,
                     "profile": profile, "skills": skills, "files": entries, "source": source_identity}
         base = "ccfa-skills-"+codex+"-"+profile
@@ -59,19 +58,20 @@ def build(root, output, tracked_only=True):
             with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
                 for entry in entries:
                     path = no_links(root / entry["path"])
-                    measured = hashlib.sha256(); size = 0
+                    starting_version = file_version(path)
+                    size = 0
                     with path.open("rb") as inp, archive.open(base+"/"+entry["path"], "w") as out:
                         for block in iter(lambda: inp.read(1024*1024), b""):
-                            out.write(block); measured.update(block); size += len(block)
-                    if measured.hexdigest() != entry["sha256"] or size != entry["bytes"]:
+                            out.write(block)
+                            size += len(block)
+                    if file_version(path) != starting_version or size != entry["bytes"]:
                         raise ValueError("Source changed while packaging: "+entry["path"])
                 archive.writestr(base+"/"+MANIFEST, json.dumps(manifest, ensure_ascii=False, indent=2)+"\n")
             os.replace(temporary, target)
         finally:
             Path(temporary).unlink(missing_ok=True)
-        reports.append({"profile": profile, "file": target.name, "sha256": digest(target), "zip_bytes": target.stat().st_size,
+        reports.append({"profile": profile, "file": target.name, "zip_bytes": target.stat().st_size,
                         "unpacked_bytes": sum(e["bytes"] for e in entries), "files": len(entries), "version": codex})
-    (output / "SHA256SUMS").write_text("".join(r["sha256"]+"  "+r["file"]+"\n" for r in reports), encoding="utf-8")
     (output / "release-size-report.json").write_text(json.dumps(reports, indent=2)+"\n", encoding="utf-8")
     return reports
 
