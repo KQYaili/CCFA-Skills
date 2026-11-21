@@ -43,6 +43,8 @@ Own the scientific comparison, required run conditions, and interpretation of ac
 
 ## Workflow
 
+For a multi-seed campaign, specify what varies independently, how much compute each comparison receives and how failed or missing runs enter the analysis. If the campaign has a job manifest, the orchestrator can [check its dependencies and compute budget](../ccf-pipeline-orchestrator/references/experiment-queue-preflight.md). Use the [post-run audit](references/experiment-audit.md) when turning measured results into claims.
+
 1. Identify the requested output after both family preflights. Raw protocol planning and evidence schemas use Humanization's baseline without a manuscript rewrite. Select detailed prose/experiment checks only when applicable, and establish claims and available evidence before method-version checks.
 2. Extract the storyline from the idea or draft. Reuse the supplied claim/mechanism description. Read `../ccf-paper-writer/references/storyline-blueprint.md` only when the central claim needs clarification, not for an already specified result table.
 3. Map each major claim to sufficient evidence for its contribution type: applicable datasets/workloads, comparison methods, metrics, and a discriminating ablation, analysis, proof, or study. Planned methods use supplied specifications; reported comparisons require verified configurations. Add robustness or failure tests only when they resolve a specific claim or project decision, grounded in an observed issue or a plausible mechanism, or satisfy a verified venue requirement. Plausibility alone does not justify an unrelated test; do not enumerate remote defensive cases.

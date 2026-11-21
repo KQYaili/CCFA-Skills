@@ -48,6 +48,7 @@ jobs:
       - run: python ccf-paper-writer/scripts/test_writing_runtime.py
       - run: python ccf-paper-reviewer/scripts/test_prepare_expert_review.py
       - run: python ccf-pipeline-orchestrator/scripts/test_research_loop.py
+      - run: python ccf-pipeline-orchestrator/scripts/test_experiment_queue_preflight.py
       - run: python evaluation/behavioral/test_evaluate_outputs.py
       - run: python tools/test_release_tools.py
       - run: node --check ccf-common/assets/configurator/app.js
@@ -70,4 +71,5 @@ jobs:
       - run: python -m unittest discover -s ccf-common/tests -p test_scientific_argument_and_preview.py
       - run: python ccf-paper-writer/scripts/test_writing_runtime.py
       - run: python ccf-paper-reviewer/scripts/test_prepare_expert_review.py
+      - run: python ccf-pipeline-orchestrator/scripts/test_experiment_queue_preflight.py
       - run: python tools/test_release_tools.py
