@@ -6,7 +6,13 @@ No paper, ccfa.yaml, preference, or experimental record is modified by validate/
 import argparse
 import json
 from pathlib import Path
-from readable_versions import file_stamp
+from datetime import datetime, timezone
+
+
+def file_stamp(path):
+    info = Path(path).stat()
+    date = datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(timespec="microseconds")
+    return f"{date} | {info.st_size} bytes"
 import sys
 
 RECORD = "ccfa-scientific-argument"
